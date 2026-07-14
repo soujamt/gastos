@@ -1,7 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Prisma schema — control de gastos (prorrateo de medidor compartido)
+// Docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +8,210 @@ generator client {
 
 datasource db {
   provider = "mysql"
+}
+
+// ─────────────────────────── Enums ───────────────────────────
+
+enum Role {
+  ADMIN
+  FAMILY
+  VIEWER
+}
+
+// Cómo se reparte el costo de un servicio entre las familias
+enum ServiceType {
+  METERED // por consumo medido (kWh) — prorrateo por %
+  FIXED // monto fijo por familia (ej. agua)
+  EQUAL // se divide en partes iguales
+  MANUAL // monto asignado a mano por familia
+}
+
+enum PeriodStatus {
+  OPEN
+  CLOSED
+}
+
+enum ChargeStatus {
+  PENDING
+  PARTIAL
+  PAID
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  YAPE
+  PLIN
+  OTHER
+}
+
+// ─────────────────────────── Modelos ───────────────────────────
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         Role     @default(FAMILY)
+  active       Boolean  @default(true)
+  // Las cuentas de rol FAMILY se enlazan a una familia
+  familyId     Int?
+  family       Family?  @relation(fields: [familyId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([familyId])
+}
+
+model Family {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  order       Int      @default(0)
+  // false = familia "resto": absorbe el kWh restante del medidor principal (ej. Julón)
+  hasSubmeter Boolean  @default(true)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users      User[]
+  readings   Reading[]
+  charges    Charge[]
+  payments   Payment[]
+  statements Statement[]
+}
+
+model Service {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  type      ServiceType @default(FIXED)
+  unit      String? // kWh, m3, etc.
+  active    Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  bills    Bill[]
+  readings Reading[]
+  charges  Charge[]
+}
+
+model Period {
+  id        Int          @id @default(autoincrement())
+  year      Int
+  month     Int // 1-12
+  label     String // "Julio 2026"
+  days      Int          @default(30)
+  status    PeriodStatus @default(OPEN)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  bills      Bill[]
+  readings   Reading[]
+  charges    Charge[]
+  payments   Payment[]
+  statements Statement[]
+
+  @@unique([year, month])
+}
+
+// Recibo total del proveedor por servicio y período (ej. Electro Ucayali)
+model Bill {
+  id          Int       @id @default(autoincrement())
+  periodId    Int
+  serviceId   Int
+  totalAmount Decimal   @db.Decimal(10, 2)
+  totalKwh    Int? // consumo total del medidor principal (servicios medidos)
+  meterPrev   Int? // lectura anterior del medidor principal
+  meterCurr   Int? // lectura actual del medidor principal
+  issueDate   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  period  Period  @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@unique([periodId, serviceId])
+  @@index([serviceId])
+}
+
+// Lectura del sub-medidor de una familia en un período (servicios medidos)
+model Reading {
+  id          Int       @id @default(autoincrement())
+  periodId    Int
+  familyId    Int
+  serviceId   Int
+  previous    Int
+  current     Int
+  kwh         Int // current - previous (calculado al guardar)
+  readingDate DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  period  Period  @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  family  Family  @relation(fields: [familyId], references: [id], onDelete: Restrict)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@unique([periodId, familyId, serviceId])
+  @@index([familyId])
+  @@index([serviceId])
+}
+
+// Cargo calculado: lo que le toca pagar a una familia por un servicio en un período
+model Charge {
+  id         Int          @id @default(autoincrement())
+  periodId   Int
+  familyId   Int
+  serviceId  Int
+  kwh        Int? // consumo imputado (servicios medidos)
+  percentage Decimal?     @db.Decimal(7, 4) // proporción 0-1 (servicios medidos)
+  amount     Decimal      @db.Decimal(10, 2)
+  status     ChargeStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  period  Period  @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  family  Family  @relation(fields: [familyId], references: [id], onDelete: Restrict)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@unique([periodId, familyId, serviceId])
+  @@index([familyId])
+  @@index([serviceId])
+}
+
+// Pago (o abono parcial) de una familia dentro de un período
+model Payment {
+  id        Int           @id @default(autoincrement())
+  periodId  Int
+  familyId  Int
+  amount    Decimal       @db.Decimal(10, 2)
+  paidAt    DateTime      @default(now())
+  method    PaymentMethod @default(CASH)
+  note      String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  period Period @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Restrict)
+
+  @@index([periodId, familyId])
+  @@index([familyId])
+}
+
+// Estado de cuenta por familia y período: arrastra la deuda y cachea totales
+model Statement {
+  id            Int          @id @default(autoincrement())
+  periodId      Int
+  familyId      Int
+  carriedDebt   Decimal      @default(0) @db.Decimal(10, 2) // deuda redondeada del mes anterior
+  chargesTotal  Decimal      @default(0) @db.Decimal(10, 2) // suma de cargos del mes
+  paymentsTotal Decimal      @default(0) @db.Decimal(10, 2) // suma de pagos del mes
+  balance       Decimal      @default(0) @db.Decimal(10, 2) // carriedDebt + chargesTotal - paymentsTotal
+  status        ChargeStatus @default(PENDING)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  period Period @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Restrict)
+
+  @@unique([periodId, familyId])
+  @@index([familyId])
 }
