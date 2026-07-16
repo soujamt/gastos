@@ -63,7 +63,11 @@ export function ElectricityForm({
   const [totalMeterKwh, setTotalMeterKwh] = useState(initial.totalMeterKwh)
   const [readings, setReadings] = useState<ReadingState>(initial.readings)
 
-  function setReading(id: number, field: "previous" | "current", value: string) {
+  function setReading(
+    id: number,
+    field: "previous" | "current",
+    value: string
+  ) {
     setReadings((prev) => ({
       ...prev,
       [id]: { ...(prev[id] ?? { previous: "", current: "" }), [field]: value },
@@ -92,10 +96,13 @@ export function ElectricityForm({
   const nameById = new Map(families.map((f) => [f.id, f.name]))
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <form
+      action={formAction}
+      className="flex flex-col gap-6 rounded-2xl border bg-card p-5 shadow-sm sm:p-6"
+    >
       <input type="hidden" name="serviceId" value={serviceId} />
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="flex flex-col gap-2">
           <Label htmlFor="totalAmount">Recibo total (S/)</Label>
           <Input
@@ -131,7 +138,7 @@ export function ElectricityForm({
         </div>
       </div>
 
-      <div className="rounded-lg border">
+      <div className="overflow-hidden rounded-xl border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -159,7 +166,7 @@ export function ElectricityForm({
                       onChange={(e) =>
                         setReading(fam.id, "previous", e.target.value)
                       }
-                      className="h-8"
+                      className="h-9"
                     />
                   </TableCell>
                   <TableCell>
@@ -171,13 +178,13 @@ export function ElectricityForm({
                       onChange={(e) =>
                         setReading(fam.id, "current", e.target.value)
                       }
-                      className="h-8"
+                      className="h-9"
                     />
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {share?.kwh ?? 0}
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-right tabular-nums">
+                  <TableCell className="text-right text-muted-foreground tabular-nums">
                     {share ? (share.percentage * 100).toFixed(1) : "0.0"}%
                   </TableCell>
                   <TableCell className="text-right font-medium tabular-nums">
@@ -191,17 +198,20 @@ export function ElectricityForm({
               <TableRow className="bg-muted/30">
                 <TableCell className="font-medium">
                   {resto.name}
-                  <span className="text-muted-foreground ml-2 text-xs">
+                  <span className="ml-2 text-xs text-muted-foreground">
                     (resto)
                   </span>
                 </TableCell>
-                <TableCell className="text-muted-foreground text-xs" colSpan={2}>
+                <TableCell
+                  className="text-xs text-muted-foreground"
+                  colSpan={2}
+                >
                   Consumo restante del medidor
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {restoConsumption}
                 </TableCell>
-                <TableCell className="text-muted-foreground text-right tabular-nums">
+                <TableCell className="text-right text-muted-foreground tabular-nums">
                   {shareById.get(resto.id)
                     ? (shareById.get(resto.id)!.percentage * 100).toFixed(1)
                     : "0.0"}
@@ -216,37 +226,41 @@ export function ElectricityForm({
         </Table>
       </div>
 
-      <div className="text-muted-foreground flex flex-wrap gap-x-6 gap-y-1 text-sm">
+      <div className="flex flex-wrap gap-x-6 gap-y-2 rounded-xl bg-muted/55 px-4 py-3 text-sm text-muted-foreground">
         <span>
-          Total kWh: <span className="text-foreground">{totalKwh}</span>
+          Total kWh:{" "}
+          <span className="font-semibold text-foreground">{totalKwh}</span>
         </span>
         <span>
           Suma repartida:{" "}
-          <span className="text-foreground">
+          <span className="font-semibold text-foreground">
             {soles.format(shares.reduce((s, x) => s + x.amount, 0))}
           </span>
         </span>
       </div>
 
       {resto && !num(totalMeterKwh) ? (
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           Ingresa el consumo total del medidor para repartir el consumo de{" "}
           {nameById.get(resto.id)}.
         </p>
       ) : null}
 
       {state?.error ? (
-        <p className="text-destructive text-sm" role="alert">
+        <p
+          className="rounded-xl bg-destructive/8 px-3.5 py-3 text-sm text-destructive"
+          role="alert"
+        >
           {state.error}
         </p>
       ) : null}
       {state?.ok ? (
-        <p className="text-sm text-emerald-600 dark:text-emerald-400">
+        <p className="rounded-xl bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-700 dark:text-emerald-400">
           Cargos guardados correctamente.
         </p>
       ) : null}
 
-      <div>
+      <div className="flex justify-end border-t pt-5">
         <Button type="submit" disabled={pending}>
           {pending ? "Guardando…" : "Calcular y guardar cargos"}
         </Button>

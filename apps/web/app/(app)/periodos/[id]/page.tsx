@@ -1,9 +1,8 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { RiPencilLine } from "@remixicon/react"
 
 import { Badge } from "@workspace/ui/components/badge"
-import { Button, buttonVariants } from "@workspace/ui/components/button"
+import { Button } from "@workspace/ui/components/button"
 import {
   Card,
   CardContent,
@@ -23,13 +22,16 @@ import { chargeStatusLabels, paymentMethodLabels } from "@/lib/labels"
 import { prisma } from "@/lib/prisma"
 
 import { DeleteButton } from "../../_components/delete-button"
+import { FormDialog } from "../../_components/form-dialog"
 import {
   addPayment,
   carryForwardDebt,
   deletePayment,
   saveElectricity,
   togglePeriodStatus,
+  updatePeriod,
 } from "../actions"
+import { PeriodForm } from "../period-form"
 import { ElectricityForm, type ElectricityInitial } from "./electricity-form"
 import { PaymentForm } from "./payment-form"
 
@@ -131,18 +133,23 @@ export default async function PeriodoWorkspacePage({
   const isOpen = period.status === "OPEN"
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-7">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[11px] font-bold tracking-[0.13em] text-primary uppercase">
+            Espacio del período
+          </span>
           <div className="flex items-center gap-3">
-            <h1 className="text-lg font-medium">{period.label}</h1>
+            <h1 className="text-2xl font-semibold tracking-[-0.035em] sm:text-[1.75rem]">
+              {period.label}
+            </h1>
             {isOpen ? (
               <Badge variant="warning">Abierto</Badge>
             ) : (
               <Badge variant="muted">Cerrado</Badge>
             )}
           </div>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             Consumo de {period.days} días · prorrateo de luz
           </p>
         </div>
@@ -152,20 +159,31 @@ export default async function PeriodoWorkspacePage({
               {isOpen ? "Cerrar período" : "Reabrir período"}
             </Button>
           </form>
-          <Link
-            href={`/periodos/${periodId}/editar`}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
+          <FormDialog
+            title="Editar período"
+            description={`Actualiza la configuración de ${period.label}.`}
+            label="Editar período"
+            mode="custom"
           >
-            <RiPencilLine className="size-4" />
-            Editar
-          </Link>
+            <PeriodForm
+              action={updatePeriod.bind(null, periodId)}
+              submitLabel="Guardar cambios"
+              modal
+              initial={{
+                year: period.year,
+                month: period.month,
+                days: period.days,
+                status: period.status,
+              }}
+            />
+          </FormDialog>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-muted-foreground text-xs font-normal">
+            <CardTitle className="text-xs font-normal text-muted-foreground">
               Total a cobrar
             </CardTitle>
           </CardHeader>
@@ -177,7 +195,7 @@ export default async function PeriodoWorkspacePage({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-muted-foreground text-xs font-normal">
+            <CardTitle className="text-xs font-normal text-muted-foreground">
               Pagado
             </CardTitle>
           </CardHeader>
@@ -189,30 +207,32 @@ export default async function PeriodoWorkspacePage({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-muted-foreground text-xs font-normal">
+            <CardTitle className="text-xs font-normal text-muted-foreground">
               Pendiente
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <span className="text-destructive text-2xl font-medium">
+            <span className="text-2xl font-medium text-destructive">
               {soles.format(totals.pendiente)}
             </span>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-muted-foreground text-xs font-normal">
+            <CardTitle className="text-xs font-normal text-muted-foreground">
               Total kWh
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <span className="text-2xl font-medium">{bill?.totalKwh ?? "—"}</span>
+            <span className="text-2xl font-medium">
+              {bill?.totalKwh ?? "—"}
+            </span>
           </CardContent>
         </Card>
       </div>
 
       {!service ? (
-        <div className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
+        <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
           No hay un servicio medido activo. Crea uno de tipo “Medido (por
           consumo)” en{" "}
           <Link href="/servicios" className="text-primary underline">
@@ -221,7 +241,7 @@ export default async function PeriodoWorkspacePage({
           .
         </div>
       ) : families.length === 0 ? (
-        <div className="text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm">
+        <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
           No hay familias activas. Agrégalas en{" "}
           <Link href="/familias" className="text-primary underline">
             Familias
@@ -250,7 +270,7 @@ export default async function PeriodoWorkspacePage({
               </Button>
             </form>
           </div>
-          <div className="rounded-lg border">
+          <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -275,13 +295,13 @@ export default async function PeriodoWorkspacePage({
                       <TableCell className="text-right tabular-nums">
                         {soles.format(cargos)}
                       </TableCell>
-                      <TableCell className="text-muted-foreground text-right tabular-nums">
+                      <TableCell className="text-right text-muted-foreground tabular-nums">
                         {soles.format(deuda)}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {soles.format(cargos + deuda)}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums text-emerald-600 dark:text-emerald-400">
+                      <TableCell className="text-right text-emerald-600 tabular-nums dark:text-emerald-400">
                         {soles.format(Number(s.paymentsTotal))}
                       </TableCell>
                       <TableCell className="text-right font-medium tabular-nums">
@@ -298,19 +318,31 @@ export default async function PeriodoWorkspacePage({
       ) : null}
 
       {families.length > 0 ? (
-        <div className="flex flex-col gap-3">
-          <h2 className="text-sm font-medium">Registrar pago</h2>
-          <PaymentForm
-            action={addPayment.bind(null, periodId)}
-            families={families}
-          />
+        <div className="flex flex-col gap-4 rounded-2xl border bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div>
+            <h2 className="font-semibold">¿Recibiste un abono?</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Regístralo sin salir de este período y actualizaremos el saldo.
+            </p>
+          </div>
+          <FormDialog
+            title="Registrar pago"
+            description={`Agrega un abono al período ${period.label}.`}
+            label="Registrar pago"
+          >
+            <PaymentForm
+              action={addPayment.bind(null, periodId)}
+              families={families}
+              modal
+            />
+          </FormDialog>
         </div>
       ) : null}
 
       {payments.length > 0 ? (
         <div className="flex flex-col gap-3">
           <h2 className="text-sm font-medium">Pagos del período</h2>
-          <div className="rounded-lg border">
+          <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -343,7 +375,7 @@ export default async function PeriodoWorkspacePage({
                     <TableCell className="text-right">
                       <form action={deletePayment}>
                         <input type="hidden" name="id" value={p.id} />
-                        <DeleteButton confirmText="¿Eliminar este pago?" />
+                        <DeleteButton confirmText="El pago se quitará del historial y el saldo de la familia se recalculará." />
                       </form>
                     </TableCell>
                   </TableRow>

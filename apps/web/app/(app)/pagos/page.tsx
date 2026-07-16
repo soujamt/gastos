@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { RiMoneyDollarCircleLine } from "@remixicon/react"
 
 import {
   Table,
@@ -39,15 +40,28 @@ export default async function PagosPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Pagos"
-        description="Abonos por familia. Se registran desde cada período."
+        description="Consulta todos los abonos registrados por familia y período."
+        eyebrow="Movimientos"
       />
 
       {payments.length === 0 ? (
-        <div className="text-muted-foreground rounded-lg border border-dashed p-10 text-center text-sm">
-          Aún no hay pagos. Regístralos abriendo un período.
+        <div className="flex flex-col items-center rounded-2xl border border-dashed bg-card p-12 text-center shadow-sm">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <RiMoneyDollarCircleLine className="size-6" />
+          </div>
+          <h2 className="mt-4 font-semibold">Aún no hay pagos</h2>
+          <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">
+            Los abonos aparecerán aquí cuando los registres dentro de un
+            período.
+          </p>
         </div>
       ) : (
-        <div className="rounded-lg border">
+        <div className="overflow-hidden rounded-2xl border bg-card shadow-[0_12px_32px_rgba(20,45,40,0.035)]">
+          <div className="flex items-center gap-2 border-b px-5 py-4 text-sm font-medium sm:px-6">
+            <RiMoneyDollarCircleLine className="size-4 text-primary" />
+            {payments.length}{" "}
+            {payments.length === 1 ? "movimiento" : "movimientos"}
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -87,7 +101,7 @@ export default async function PagosPage() {
                   <TableCell className="text-right">
                     <form action={deletePayment}>
                       <input type="hidden" name="id" value={p.id} />
-                      <DeleteButton confirmText="¿Eliminar este pago?" />
+                      <DeleteButton confirmText="El pago se quitará del historial y el saldo de la familia se recalculará." />
                     </form>
                   </TableCell>
                 </TableRow>
