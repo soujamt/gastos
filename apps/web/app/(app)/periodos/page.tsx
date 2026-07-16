@@ -52,7 +52,14 @@ export default async function PeriodosPage() {
             <TableBody>
               {periods.map((period) => (
                 <TableRow key={period.id}>
-                  <TableCell className="font-medium">{period.label}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link
+                      href={`/periodos/${period.id}`}
+                      className="hover:text-primary hover:underline"
+                    >
+                      {period.label}
+                    </Link>
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {period.days}
                   </TableCell>
@@ -71,7 +78,7 @@ export default async function PeriodosPage() {
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
                       <Link
-                        href={`/periodos/${period.id}`}
+                        href={`/periodos/${period.id}/editar`}
                         className={cn(
                           buttonVariants({ variant: "ghost", size: "icon-sm" }),
                           "text-muted-foreground"
