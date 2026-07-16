@@ -7,7 +7,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-4 rounded-lg border py-5",
+        "flex flex-col gap-5 rounded-2xl border border-border/80 bg-card py-5 text-card-foreground shadow-[0_1px_2px_rgba(20,45,40,0.03),0_12px_32px_rgba(20,45,40,0.035)]",
         className
       )}
       {...props}
@@ -19,7 +19,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-header"
-      className={cn("flex flex-col gap-1 px-5", className)}
+      className={cn("flex flex-col gap-1.5 px-5 sm:px-6", className)}
       {...props}
     />
   )
@@ -29,7 +29,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn("text-sm font-medium", className)}
+      className={cn("text-sm font-semibold tracking-[-0.01em]", className)}
       {...props}
     />
   )
@@ -39,7 +39,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-muted-foreground text-xs", className)}
+      className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
   )
@@ -47,7 +47,11 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
 
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div data-slot="card-content" className={cn("px-5", className)} {...props} />
+    <div
+      data-slot="card-content"
+      className={cn("px-5 sm:px-6", className)}
+      {...props}
+    />
   )
 }
 
@@ -55,17 +59,10 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-footer"
-      className={cn("flex items-center px-5", className)}
+      className={cn("flex items-center px-5 sm:px-6", className)}
       {...props}
     />
   )
 }
 
-export {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-}
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }

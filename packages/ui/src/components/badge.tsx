@@ -4,17 +4,16 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@workspace/ui/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap",
   {
     variants: {
       variant: {
         default: "bg-primary/10 text-primary",
         muted: "bg-muted text-muted-foreground",
-        success:
-          "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+        success: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
         warning: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
         danger: "bg-destructive/10 text-destructive",
-        outline: "text-foreground border",
+        outline: "border text-foreground",
       },
     },
     defaultVariants: {
