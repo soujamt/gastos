@@ -90,6 +90,11 @@
   --foreground: oklch(0.96 0.008 174);
   --card: oklch(0.215 0.022 176);
   --card-foreground: oklch(0.96 0.008 174);
+  /* Series de gráficos ajustadas a la superficie oscura: validadas en banda de
+     luminosidad (0.48-0.67), croma, separación para daltonismo y contraste. */
+  --chart-2: oklch(0.66 0.13 153);
+  --chart-3: oklch(0.66 0.15 74);
+  --chart-4: oklch(0.66 0.14 247);
   --popover: oklch(0.225 0.022 176);
   --popover-foreground: oklch(0.96 0.008 174);
   --primary: oklch(0.705 0.13 166);
