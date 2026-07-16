@@ -17,8 +17,11 @@ import { FormDialog } from "../_components/form-dialog"
 import { PageHeader } from "../_components/page-header"
 import { createUser, deleteUser, updateUser } from "./actions"
 import { UserForm } from "./user-form"
+import { requireAdminPage } from "@/lib/viewer"
 
 export default async function UsuariosPage() {
+  await requireAdminPage()
+
   const [users, families] = await Promise.all([
     prisma.user.findMany({
       orderBy: { email: "asc" },

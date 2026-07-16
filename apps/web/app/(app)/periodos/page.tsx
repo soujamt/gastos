@@ -18,8 +18,11 @@ import { FormDialog } from "../_components/form-dialog"
 import { PageHeader } from "../_components/page-header"
 import { createPeriod, deletePeriod, updatePeriod } from "./actions"
 import { PeriodForm } from "./period-form"
+import { requireAdminPage } from "@/lib/viewer"
 
 export default async function PeriodosPage() {
+  await requireAdminPage()
+
   const periods = await prisma.period.findMany({
     orderBy: [{ year: "desc" }, { month: "desc" }],
     include: { _count: { select: { bills: true, charges: true } } },

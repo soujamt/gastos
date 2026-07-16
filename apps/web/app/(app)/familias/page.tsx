@@ -16,8 +16,11 @@ import { FormDialog } from "../_components/form-dialog"
 import { PageHeader } from "../_components/page-header"
 import { createFamily, deleteFamily, updateFamily } from "./actions"
 import { FamilyForm } from "./family-form"
+import { requireAdminPage } from "@/lib/viewer"
 
 export default async function FamiliasPage() {
+  await requireAdminPage()
+
   const families = await prisma.family.findMany({
     orderBy: [{ order: "asc" }, { name: "asc" }],
   })

@@ -16,6 +16,7 @@ import {
 import { ChargeStatus, ServiceType } from "@/lib/generated/prisma/enums"
 import { chargeStatusLabels, monthLabels } from "@/lib/labels"
 import { prisma } from "@/lib/prisma"
+import { getViewer } from "@/lib/viewer"
 
 import { PageHeader } from "../_components/page-header"
 import { BarChart, type ChartSeries } from "./bar-chart"
@@ -63,7 +64,9 @@ function Panel({
 }
 
 export default async function ReportesPage() {
-  const [periods, families] = await Promise.all([
+  const { familyScope } = await getViewer()
+
+  const [periods, allFamilies] = await Promise.all([
     prisma.period.findMany({
       orderBy: [{ year: "asc" }, { month: "asc" }],
       include: {
@@ -80,6 +83,13 @@ export default async function ReportesPage() {
       select: { id: true, name: true },
     }),
   ])
+
+  // Rol FAMILY: el reporte se reduce a su propia familia.
+  const families =
+    familyScope === null
+      ? allFamilies
+      : allFamilies.filter((f) => f.id === familyScope)
+  const visibleFamilyIds = new Set(families.map((f) => f.id))
 
   if (periods.length === 0) {
     return (
@@ -111,8 +121,12 @@ export default async function ReportesPage() {
   // Consumo (kWh) por familia y recibo de luz, por período
   const rows = periods.map((p) => {
     const kwhByFamily: Record<string, number> = {}
+    let totalKwhPeriod = 0
     for (const c of p.charges) {
       if (c.service.type !== ServiceType.METERED) continue
+      // El total del período es agregado (da contexto al recibo compartido).
+      totalKwhPeriod += c.kwh ?? 0
+      if (!visibleFamilyIds.has(c.familyId)) continue
       kwhByFamily[String(c.familyId)] =
         (kwhByFamily[String(c.familyId)] ?? 0) + (c.kwh ?? 0)
     }
@@ -124,22 +138,33 @@ export default async function ReportesPage() {
       label: p.label,
       short: monthLabels[p.month - 1]?.slice(0, 3) ?? p.label,
       kwhByFamily,
-      totalKwh: Object.values(kwhByFamily).reduce((a, b) => a + b, 0),
+      totalKwh: totalKwhPeriod,
       receipt,
     }
   })
 
   const totalBilled = periods.reduce(
-    (sum, p) => sum + p.charges.reduce((s, c) => s + Number(c.amount), 0),
+    (sum, p) =>
+      sum +
+      p.charges
+        .filter((c) => visibleFamilyIds.has(c.familyId))
+        .reduce((s, c) => s + Number(c.amount), 0),
     0
   )
   const totalPaid = periods.reduce(
     (sum, p) =>
-      sum + p.statements.reduce((s, st) => s + Number(st.paymentsTotal), 0),
+      sum +
+      p.statements
+        .filter((st) => visibleFamilyIds.has(st.familyId))
+        .reduce((s, st) => s + Number(st.paymentsTotal), 0),
     0
   )
   const latest = periods[periods.length - 1]
-  const latestStatements = [...(latest?.statements ?? [])].sort(
+  const latestStatements = [
+    ...(latest?.statements ?? []).filter((st) =>
+      visibleFamilyIds.has(st.familyId)
+    ),
+  ].sort(
     (a, b) =>
       a.family.order - b.family.order ||
       a.family.name.localeCompare(b.family.name)
@@ -150,7 +175,11 @@ export default async function ReportesPage() {
   )
   // Nota: no se compara "cobrado" contra "cargos" como tasa de cobranza porque
   // los pagos también cubren deuda arrastrada, que no es un cargo del período.
-  const totalKwh = rows.reduce((sum, r) => sum + r.totalKwh, 0)
+  const totalKwh = rows.reduce(
+    (sum, r) =>
+      sum + Object.values(r.kwhByFamily).reduce((a, b) => a + b, 0),
+    0
+  )
 
   const kpis = [
     { label: "Cargos del histórico", value: soles.format(totalBilled) },

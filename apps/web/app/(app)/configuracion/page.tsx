@@ -9,8 +9,11 @@ import {
 
 import { PageHeader } from "../_components/page-header"
 import { AppearanceSettings } from "./appearance-settings"
+import { requireAdminPage } from "@/lib/viewer"
 
-export default function ConfiguracionPage() {
+export default async function ConfiguracionPage() {
+  await requireAdminPage()
+
   return (
     <div className="flex flex-col gap-7">
       <PageHeader

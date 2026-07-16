@@ -20,6 +20,7 @@ import {
 import { ChargeStatus, ServiceType } from "@/lib/generated/prisma/enums"
 import { chargeStatusLabels, paymentMethodLabels } from "@/lib/labels"
 import { prisma } from "@/lib/prisma"
+import { requireAdminPage } from "@/lib/viewer"
 
 import { DeleteButton } from "../../_components/delete-button"
 import { FormDialog } from "../../_components/form-dialog"
@@ -57,6 +58,8 @@ export default async function PeriodoWorkspacePage({
 }: {
   params: Promise<{ id: string }>
 }) {
+  await requireAdminPage()
+
   const { id } = await params
   const periodId = Number(id)
   if (!Number.isInteger(periodId)) notFound()

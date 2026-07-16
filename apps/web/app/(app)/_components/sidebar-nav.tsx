@@ -21,6 +21,7 @@ type NavItem = {
   href: string
   label: string
   icon: RemixiconComponentType
+  adminOnly?: boolean
 }
 
 export const navGroups: { label: string; items: NavItem[] }[] = [
@@ -28,10 +29,30 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
     label: "Control",
     items: [
       { href: "/", label: "Dashboard", icon: RiDashboardLine },
-      { href: "/periodos", label: "Períodos", icon: RiCalendar2Line },
-      { href: "/familias", label: "Familias", icon: RiGroupLine },
-      { href: "/servicios", label: "Servicios", icon: RiFlashlightLine },
-      { href: "/lecturas", label: "Lecturas", icon: RiSpeedUpLine },
+      {
+        href: "/periodos",
+        label: "Períodos",
+        icon: RiCalendar2Line,
+        adminOnly: true,
+      },
+      {
+        href: "/familias",
+        label: "Familias",
+        icon: RiGroupLine,
+        adminOnly: true,
+      },
+      {
+        href: "/servicios",
+        label: "Servicios",
+        icon: RiFlashlightLine,
+        adminOnly: true,
+      },
+      {
+        href: "/lecturas",
+        label: "Lecturas",
+        icon: RiSpeedUpLine,
+        adminOnly: true,
+      },
       { href: "/pagos", label: "Pagos", icon: RiMoneyDollarCircleLine },
       { href: "/reportes", label: "Reportes", icon: RiBarChartLine },
     ],
@@ -39,18 +60,40 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: "Sistema",
     items: [
-      { href: "/usuarios", label: "Usuarios", icon: RiUserSettingsLine },
-      { href: "/configuracion", label: "Configuración", icon: RiSettings3Line },
+      {
+        href: "/usuarios",
+        label: "Usuarios",
+        icon: RiUserSettingsLine,
+        adminOnly: true,
+      },
+      {
+        href: "/configuracion",
+        label: "Configuración",
+        icon: RiSettings3Line,
+        adminOnly: true,
+      },
     ],
   },
 ]
 
-export function SidebarNav() {
+/** Nav visible según el rol: sin admin, los módulos de gestión desaparecen. */
+export function visibleNavGroups(isAdmin: boolean) {
+  if (isAdmin) return navGroups
+  return navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !item.adminOnly),
+    }))
+    .filter((group) => group.items.length > 0)
+}
+
+export function SidebarNav({ isAdmin = true }: { isAdmin?: boolean }) {
   const pathname = usePathname()
+  const groups = visibleNavGroups(isAdmin)
 
   return (
     <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-5">
-      {navGroups.map((group) => (
+      {groups.map((group) => (
         <div key={group.label} className="flex flex-col gap-1">
           <span className="px-2 pb-2 text-[10px] font-semibold tracking-[0.14em] text-sidebar-foreground/40 uppercase">
             {group.label}

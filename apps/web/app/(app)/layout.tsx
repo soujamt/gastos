@@ -18,6 +18,7 @@ export default async function AppLayout({
   if (!session?.user) {
     redirect("/login")
   }
+  const isAdmin = session.user.role === "ADMIN"
 
   return (
     <div className="flex min-h-svh">
@@ -35,7 +36,7 @@ export default async function AppLayout({
             </div>
           </div>
         </div>
-        <SidebarNav />
+        <SidebarNav isAdmin={isAdmin} />
         <div className="m-4 mt-auto rounded-2xl border border-sidebar-border bg-white/[0.035] p-4">
           <p className="text-[10px] font-semibold tracking-[0.12em] text-sidebar-foreground/45 uppercase">
             Estado del sistema
@@ -49,7 +50,7 @@ export default async function AppLayout({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-40 flex h-20 items-center gap-3 border-b border-border/70 bg-background/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
-          <MobileNavigation />
+          <MobileNavigation isAdmin={isAdmin} />
           <div className="md:hidden">
             <div className="text-sm font-semibold tracking-[-0.02em]">
               GastosFam

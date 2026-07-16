@@ -17,8 +17,11 @@ import { FormDialog } from "../_components/form-dialog"
 import { PageHeader } from "../_components/page-header"
 import { createService, deleteService, updateService } from "./actions"
 import { ServiceForm } from "./service-form"
+import { requireAdminPage } from "@/lib/viewer"
 
 export default async function ServiciosPage() {
+  await requireAdminPage()
+
   const services = await prisma.service.findMany({ orderBy: { name: "asc" } })
   const activeCount = services.filter((service) => service.active).length
 

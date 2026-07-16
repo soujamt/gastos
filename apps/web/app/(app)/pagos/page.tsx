@@ -11,6 +11,7 @@ import {
 } from "@workspace/ui/components/table"
 import { paymentMethodLabels } from "@/lib/labels"
 import { prisma } from "@/lib/prisma"
+import { familyFilter, getViewer } from "@/lib/viewer"
 
 import { DeleteButton } from "../_components/delete-button"
 import { PageHeader } from "../_components/page-header"
@@ -27,7 +28,10 @@ const fullDate = new Intl.DateTimeFormat("es-PE", {
 })
 
 export default async function PagosPage() {
+  const { familyScope, isAdmin } = await getViewer()
+
   const payments = await prisma.payment.findMany({
+    where: familyFilter(familyScope),
     include: {
       family: { select: { name: true } },
       period: { select: { id: true, label: true } },
@@ -40,7 +44,11 @@ export default async function PagosPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Pagos"
-        description="Consulta todos los abonos registrados por familia y período."
+        description={
+          isAdmin
+            ? "Consulta todos los abonos registrados por familia y período."
+            : "Tu historial de abonos por período."
+        }
         eyebrow="Movimientos"
       />
 
@@ -66,12 +74,12 @@ export default async function PagosPage() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-28">Fecha</TableHead>
-                <TableHead>Familia</TableHead>
+                {isAdmin ? <TableHead>Familia</TableHead> : null}
                 <TableHead>Período</TableHead>
                 <TableHead>Método</TableHead>
                 <TableHead>Nota</TableHead>
                 <TableHead className="text-right">Monto</TableHead>
-                <TableHead className="w-12" />
+                {isAdmin ? <TableHead className="w-12" /> : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -80,14 +88,22 @@ export default async function PagosPage() {
                   <TableCell className="text-muted-foreground">
                     {fullDate.format(p.paidAt)}
                   </TableCell>
-                  <TableCell className="font-medium">{p.family.name}</TableCell>
+                  {isAdmin ? (
+                    <TableCell className="font-medium">
+                      {p.family.name}
+                    </TableCell>
+                  ) : null}
                   <TableCell>
-                    <Link
-                      href={`/periodos/${p.period.id}`}
-                      className="hover:text-primary hover:underline"
-                    >
-                      {p.period.label}
-                    </Link>
+                    {isAdmin ? (
+                      <Link
+                        href={`/periodos/${p.period.id}`}
+                        className="hover:text-primary hover:underline"
+                      >
+                        {p.period.label}
+                      </Link>
+                    ) : (
+                      p.period.label
+                    )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {paymentMethodLabels[p.method]}
@@ -98,12 +114,14 @@ export default async function PagosPage() {
                   <TableCell className="text-right font-medium tabular-nums">
                     {soles.format(Number(p.amount))}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <form action={deletePayment}>
-                      <input type="hidden" name="id" value={p.id} />
-                      <DeleteButton confirmText="El pago se quitará del historial y el saldo de la familia se recalculará." />
-                    </form>
-                  </TableCell>
+                  {isAdmin ? (
+                    <TableCell className="text-right">
+                      <form action={deletePayment}>
+                        <input type="hidden" name="id" value={p.id} />
+                        <DeleteButton confirmText="El pago se quitará del historial y el saldo de la familia se recalculará." />
+                      </form>
+                    </TableCell>
+                  ) : null}
                 </TableRow>
               ))}
             </TableBody>

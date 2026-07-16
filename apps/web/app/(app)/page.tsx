@@ -20,6 +20,7 @@ import {
 } from "@workspace/ui/components/card"
 import { cn } from "@workspace/ui/lib/utils"
 import { prisma } from "@/lib/prisma"
+import { familyFilter, getViewer } from "@/lib/viewer"
 
 import { FormDialog } from "./_components/form-dialog"
 import { createPeriod } from "./periodos/actions"
@@ -37,6 +38,7 @@ const shortDate = new Intl.DateTimeFormat("es-PE", {
 
 export default async function DashboardPage() {
   const session = await auth()
+  const { familyScope, isAdmin } = await getViewer()
 
   const [families, services, openPeriods, latestPeriod, recentPayments] =
     await Promise.all([
@@ -45,9 +47,13 @@ export default async function DashboardPage() {
       prisma.period.count({ where: { status: "OPEN" } }),
       prisma.period.findFirst({
         orderBy: [{ year: "desc" }, { month: "desc" }],
-        include: { statements: true },
+        include: {
+          // Rol FAMILY: el resumen se limita a su propio estado de cuenta.
+          statements: { where: familyFilter(familyScope) },
+        },
       }),
       prisma.payment.findMany({
+        where: familyFilter(familyScope),
         orderBy: { paidAt: "desc" },
         take: 4,
         include: {
@@ -110,13 +116,19 @@ export default async function DashboardPage() {
             Aquí tienes el estado de los gastos compartidos al día de hoy.
           </p>
         </div>
-        <FormDialog
-          title="Nuevo período"
-          description="Abre un ciclo para registrar consumos, cargos y pagos."
-          label="Abrir nuevo período"
-        >
-          <PeriodForm action={createPeriod} submitLabel="Crear período" modal />
-        </FormDialog>
+        {isAdmin ? (
+          <FormDialog
+            title="Nuevo período"
+            description="Abre un ciclo para registrar consumos, cargos y pagos."
+            label="Abrir nuevo período"
+          >
+            <PeriodForm
+              action={createPeriod}
+              submitLabel="Crear período"
+              modal
+            />
+          </FormDialog>
+        ) : null}
       </div>
 
       <section className="grid gap-4 xl:grid-cols-[1.55fr_1fr]">

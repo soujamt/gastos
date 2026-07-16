@@ -1,6 +1,9 @@
 import { Placeholder } from "../_components/placeholder"
+import { requireAdminPage } from "@/lib/viewer"
 
-export default function LecturasPage() {
+export default async function LecturasPage() {
+  await requireAdminPage()
+
   return (
     <Placeholder
       title="Lecturas"

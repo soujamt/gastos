@@ -14,10 +14,11 @@ import {
 } from "@workspace/ui/components/dialog"
 import { cn } from "@workspace/ui/lib/utils"
 
-import { navGroups } from "./sidebar-nav"
+import { visibleNavGroups } from "./sidebar-nav"
 
-export function MobileNavigation() {
+export function MobileNavigation({ isAdmin = true }: { isAdmin?: boolean }) {
   const pathname = usePathname()
+  const groups = visibleNavGroups(isAdmin)
 
   return (
     <Dialog>
@@ -43,7 +44,7 @@ export function MobileNavigation() {
           </div>
 
           <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-5">
-            {navGroups.map((group) => (
+            {groups.map((group) => (
               <div key={group.label} className="flex flex-col gap-1">
                 <span className="px-2 pb-2 text-[10px] font-semibold tracking-[0.14em] text-sidebar-foreground/40 uppercase">
                   {group.label}
