@@ -23,7 +23,7 @@ type NavItem = {
   icon: RemixiconComponentType
 }
 
-const groups: { label: string; items: NavItem[] }[] = [
+export const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: "Control",
     items: [
@@ -49,10 +49,10 @@ export function SidebarNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="flex flex-col gap-5 px-2 py-3">
-      {groups.map((group) => (
+    <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-5">
+      {navGroups.map((group) => (
         <div key={group.label} className="flex flex-col gap-1">
-          <span className="text-muted-foreground px-2 pb-1 text-[11px] font-medium tracking-wide uppercase">
+          <span className="px-2 pb-2 text-[10px] font-semibold tracking-[0.14em] text-sidebar-foreground/40 uppercase">
             {group.label}
           </span>
           {group.items.map((item) => {
@@ -66,13 +66,22 @@ export function SidebarNav() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors",
+                  "group flex h-11 items-center gap-3 rounded-xl px-3 text-sm transition-all duration-200",
                   active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                    ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.055),0_8px_20px_rgba(0,0,0,0.08)]"
+                    : "text-sidebar-foreground/58 hover:bg-sidebar-accent/55 hover:text-sidebar-foreground"
                 )}
               >
-                <Icon className="size-4" />
+                <span
+                  className={cn(
+                    "flex size-7 items-center justify-center rounded-lg transition-all",
+                    active
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                      : "text-sidebar-foreground/48 group-hover:bg-white/5 group-hover:text-sidebar-foreground"
+                  )}
+                >
+                  <Icon className="size-[17px]" />
+                </span>
                 {item.label}
               </Link>
             )

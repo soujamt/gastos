@@ -16,9 +16,21 @@ function ThemeProvider({
       {...props}
     >
       <ThemeHotkey />
+      <AccentPreference />
       {children}
     </NextThemesProvider>
   )
+}
+
+function AccentPreference() {
+  React.useEffect(() => {
+    const accent = window.localStorage.getItem("gastosfam-accent")
+    if (accent && accent !== "teal") {
+      document.documentElement.dataset.accent = accent
+    }
+  }, [])
+
+  return null
 }
 
 function isTypingTarget(target: EventTarget | null) {
