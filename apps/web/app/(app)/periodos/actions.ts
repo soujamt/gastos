@@ -5,13 +5,19 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 
 import { requireAdmin } from "@/lib/auth-guards"
-import { ChargeStatus, PeriodStatus } from "@/lib/generated/prisma/enums"
+import {
+  ChargeStatus,
+  PaymentMethod,
+  PeriodStatus,
+} from "@/lib/generated/prisma/enums"
 import { monthLabels } from "@/lib/labels"
 import { prisma } from "@/lib/prisma"
 import { computeShares, restoKwh } from "@/lib/prorrateo"
+import { recomputeAllStatements, recomputeStatement } from "@/lib/statements"
 
 export type FormState = { error?: string } | undefined
 export type ElectricityState = { error?: string; ok?: boolean } | undefined
+export type PaymentState = { error?: string; ok?: boolean } | undefined
 
 const schema = z.object({
   year: z.coerce.number().int().min(2000).max(2100),
@@ -248,6 +254,93 @@ export async function saveElectricity(
     }
   })
 
+  await recomputeAllStatements(periodId)
+
   revalidatePath(`/periodos/${periodId}`)
   return { ok: true }
+}
+
+export async function addPayment(
+  periodId: number,
+  _prev: PaymentState,
+  formData: FormData
+): Promise<PaymentState> {
+  await requireAdmin()
+
+  const familyId = Number(formData.get("familyId"))
+  const amount = Number(formData.get("amount"))
+  const methodRaw = String(formData.get("method") ?? "")
+  const paidAtRaw = formData.get("paidAt")
+  const note = String(formData.get("note") ?? "").trim() || null
+
+  if (!Number.isInteger(familyId)) return { error: "Selecciona una familia" }
+  if (!(amount > 0)) return { error: "El monto debe ser mayor a 0" }
+
+  const method = (
+    Object.values(PaymentMethod) as string[]
+  ).includes(methodRaw)
+    ? (methodRaw as PaymentMethod)
+    : PaymentMethod.CASH
+  const paidAt = paidAtRaw ? new Date(String(paidAtRaw)) : new Date()
+
+  await prisma.payment.create({
+    data: { periodId, familyId, amount, method, paidAt, note },
+  })
+  await recomputeStatement(periodId, familyId)
+
+  revalidatePath(`/periodos/${periodId}`)
+  revalidatePath("/pagos")
+  return { ok: true }
+}
+
+export async function deletePayment(formData: FormData) {
+  await requireAdmin()
+  const id = Number(formData.get("id"))
+  if (!Number.isInteger(id)) return
+
+  const payment = await prisma.payment.findUnique({ where: { id } })
+  if (!payment) return
+
+  await prisma.payment.delete({ where: { id } })
+  await recomputeStatement(payment.periodId, payment.familyId)
+
+  revalidatePath(`/periodos/${payment.periodId}`)
+  revalidatePath("/pagos")
+}
+
+// Arrastra el saldo de cada familia como deuda del siguiente período.
+export async function carryForwardDebt(periodId: number) {
+  await requireAdmin()
+  const period = await prisma.period.findUnique({ where: { id: periodId } })
+  if (!period) return
+
+  const next = await prisma.period.findFirst({
+    where: {
+      OR: [
+        { year: { gt: period.year } },
+        { year: period.year, month: { gt: period.month } },
+      ],
+    },
+    orderBy: [{ year: "asc" }, { month: "asc" }],
+  })
+  if (!next) return
+
+  const statements = await prisma.statement.findMany({ where: { periodId } })
+  for (const st of statements) {
+    await prisma.statement.upsert({
+      where: {
+        periodId_familyId: { periodId: next.id, familyId: st.familyId },
+      },
+      update: { carriedDebt: Number(st.balance) },
+      create: {
+        periodId: next.id,
+        familyId: st.familyId,
+        carriedDebt: Number(st.balance),
+      },
+    })
+    await recomputeStatement(next.id, st.familyId)
+  }
+
+  revalidatePath(`/periodos/${next.id}`)
+  revalidatePath("/periodos")
 }
