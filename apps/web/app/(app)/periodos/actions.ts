@@ -9,6 +9,7 @@ import {
   ChargeStatus,
   PaymentMethod,
   PeriodStatus,
+  ServiceType,
 } from "@/lib/generated/prisma/enums"
 import { monthLabels } from "@/lib/labels"
 import { prisma } from "@/lib/prisma"
@@ -18,6 +19,7 @@ import { recomputeAllStatements, recomputeStatement } from "@/lib/statements"
 export type FormState = { error?: string } | undefined
 export type ElectricityState = { error?: string; ok?: boolean } | undefined
 export type PaymentState = { error?: string; ok?: boolean } | undefined
+export type OtherChargesState = { error?: string; ok?: boolean } | undefined
 
 const schema = z.object({
   year: z.coerce.number().int().min(2000).max(2100),
@@ -256,6 +258,97 @@ export async function saveElectricity(
 
   await recomputeAllStatements(periodId)
 
+  revalidatePath(`/periodos/${periodId}`)
+  return { ok: true }
+}
+
+/**
+ * Guarda los cargos de servicios no medidos (agua, otros) y la deuda anterior
+ * de cada familia para el período. Un monto vacío o 0 elimina el cargo.
+ */
+export async function saveOtherCharges(
+  periodId: number,
+  _prev: OtherChargesState,
+  formData: FormData
+): Promise<OtherChargesState> {
+  await requireAdmin()
+
+  const [families, services] = await Promise.all([
+    prisma.family.findMany({ where: { active: true }, select: { id: true, name: true } }),
+    prisma.service.findMany({
+      where: { active: true, type: { not: ServiceType.METERED } },
+      select: { id: true, name: true },
+    }),
+  ])
+
+  // Se valida todo antes de escribir, para no dejar el período a medias.
+  const debts: { familyId: number; carriedDebt: number }[] = []
+  const charges: { familyId: number; serviceId: number; amount: number }[] = []
+
+  for (const fam of families) {
+    const rawDebt = formData.get(`debt_${fam.id}`)
+    const carriedDebt = rawDebt ? Number(rawDebt) : 0
+    if (!Number.isFinite(carriedDebt)) {
+      return { error: `La deuda anterior de ${fam.name} no es un número válido` }
+    }
+    debts.push({ familyId: fam.id, carriedDebt })
+
+    for (const svc of services) {
+      const raw = formData.get(`charge_${svc.id}_${fam.id}`)
+      const amount = raw ? Number(raw) : 0
+      if (!Number.isFinite(amount) || amount < 0) {
+        return {
+          error: `El monto de ${svc.name} para ${fam.name} debe ser 0 o mayor`,
+        }
+      }
+      charges.push({ familyId: fam.id, serviceId: svc.id, amount })
+    }
+  }
+
+  for (const d of debts) {
+    await prisma.statement.upsert({
+      where: { periodId_familyId: { periodId, familyId: d.familyId } },
+      update: { carriedDebt: d.carriedDebt },
+      create: {
+        periodId,
+        familyId: d.familyId,
+        carriedDebt: d.carriedDebt,
+      },
+    })
+  }
+
+  for (const c of charges) {
+    const where = {
+      periodId_familyId_serviceId: {
+        periodId,
+        familyId: c.familyId,
+        serviceId: c.serviceId,
+      },
+    }
+    if (c.amount > 0) {
+      await prisma.charge.upsert({
+        where,
+        update: { amount: c.amount },
+        create: {
+          periodId,
+          familyId: c.familyId,
+          serviceId: c.serviceId,
+          amount: c.amount,
+          status: ChargeStatus.PENDING,
+        },
+      })
+    } else {
+      await prisma.charge.deleteMany({
+        where: {
+          periodId,
+          familyId: c.familyId,
+          serviceId: c.serviceId,
+        },
+      })
+    }
+  }
+
+  await recomputeAllStatements(periodId)
   revalidatePath(`/periodos/${periodId}`)
   return { ok: true }
 }

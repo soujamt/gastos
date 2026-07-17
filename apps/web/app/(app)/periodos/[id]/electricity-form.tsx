@@ -95,6 +95,13 @@ export function ElectricityForm({
   const shareById = new Map(shares.map((s) => [s.id, s]))
   const nameById = new Map(families.map((f) => [f.id, f.name]))
 
+  // Los montos se redondean a soles enteros, así que lo repartido puede diferir
+  // unos céntimos del recibo. Se muestra en vez de esconderlo.
+  const repartido = shares.reduce((sum, s) => sum + s.amount, 0)
+  const roundingDiff = num(totalAmount)
+    ? Number((repartido - num(totalAmount)).toFixed(2))
+    : 0
+
   return (
     <form
       action={formAction}
@@ -234,9 +241,18 @@ export function ElectricityForm({
         <span>
           Suma repartida:{" "}
           <span className="font-semibold text-foreground">
-            {soles.format(shares.reduce((s, x) => s + x.amount, 0))}
+            {soles.format(repartido)}
           </span>
         </span>
+        {roundingDiff !== 0 ? (
+          <span>
+            Ajuste por redondeo:{" "}
+            <span className="font-semibold text-foreground">
+              {roundingDiff > 0 ? "+" : "−"}
+              {soles.format(Math.abs(roundingDiff))}
+            </span>
+          </span>
+        ) : null}
       </div>
 
       {resto && !num(totalMeterKwh) ? (

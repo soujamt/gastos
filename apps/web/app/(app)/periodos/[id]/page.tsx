@@ -29,11 +29,16 @@ import {
   carryForwardDebt,
   deletePayment,
   saveElectricity,
+  saveOtherCharges,
   togglePeriodStatus,
   updatePeriod,
 } from "../actions"
 import { PeriodForm } from "../period-form"
 import { ElectricityForm, type ElectricityInitial } from "./electricity-form"
+import {
+  OtherChargesForm,
+  type OtherChargesInitial,
+} from "./other-charges-form"
 import { PaymentForm } from "./payment-form"
 
 const soles = new Intl.NumberFormat("es-PE", {
@@ -67,26 +72,46 @@ export default async function PeriodoWorkspacePage({
   const period = await prisma.period.findUnique({ where: { id: periodId } })
   if (!period) notFound()
 
-  const [service, families, statements, payments] = await Promise.all([
-    prisma.service.findFirst({
-      where: { type: ServiceType.METERED, active: true },
-      orderBy: { id: "asc" },
-    }),
-    prisma.family.findMany({
-      where: { active: true },
-      orderBy: [{ order: "asc" }, { name: "asc" }],
-      select: { id: true, name: true, hasSubmeter: true },
-    }),
-    prisma.statement.findMany({
-      where: { periodId },
-      include: { family: { select: { name: true, order: true } } },
-    }),
-    prisma.payment.findMany({
-      where: { periodId },
-      include: { family: { select: { name: true } } },
-      orderBy: { paidAt: "desc" },
-    }),
-  ])
+  const [service, otherServices, families, statements, payments] =
+    await Promise.all([
+      prisma.service.findFirst({
+        where: { type: ServiceType.METERED, active: true },
+        orderBy: { id: "asc" },
+      }),
+      prisma.service.findMany({
+        where: { active: true, type: { not: ServiceType.METERED } },
+        orderBy: { name: "asc" },
+        select: { id: true, name: true },
+      }),
+      prisma.family.findMany({
+        where: { active: true },
+        orderBy: [{ order: "asc" }, { name: "asc" }],
+        select: { id: true, name: true, hasSubmeter: true },
+      }),
+      prisma.statement.findMany({
+        where: { periodId },
+        include: { family: { select: { name: true, order: true } } },
+      }),
+      prisma.payment.findMany({
+        where: { periodId },
+        include: { family: { select: { name: true } } },
+        orderBy: { paidAt: "desc" },
+      }),
+    ])
+
+  // Cargos de servicios no medidos (agua, otros) ya registrados
+  const otherCharges = await prisma.charge.findMany({
+    where: { periodId, serviceId: { in: otherServices.map((s) => s.id) } },
+  })
+  const otherInitial: OtherChargesInitial = { debts: {}, charges: {} }
+  for (const st of statements) {
+    otherInitial.debts[st.familyId] = String(Number(st.carriedDebt))
+  }
+  for (const c of otherCharges) {
+    otherInitial.charges[`${c.serviceId}_${c.familyId}`] = String(
+      Number(c.amount)
+    )
+  }
 
   statements.sort(
     (a, b) =>
@@ -262,6 +287,28 @@ export default async function PeriodoWorkspacePage({
           />
         </div>
       )}
+
+      {families.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          <h2 className="text-sm font-medium">Otros cargos y deuda anterior</h2>
+          {otherServices.length === 0 ? (
+            <div className="rounded-2xl border border-dashed bg-card p-8 text-center text-sm text-muted-foreground">
+              No hay servicios de monto fijo. Crea uno (por ejemplo, Agua) en{" "}
+              <Link href="/servicios" className="text-primary underline">
+                Servicios
+              </Link>{" "}
+              para poder cobrarlo aquí.
+            </div>
+          ) : (
+            <OtherChargesForm
+              action={saveOtherCharges.bind(null, periodId)}
+              families={families}
+              services={otherServices}
+              initial={otherInitial}
+            />
+          )}
+        </div>
+      ) : null}
 
       {statements.length > 0 ? (
         <div className="flex flex-col gap-3">
