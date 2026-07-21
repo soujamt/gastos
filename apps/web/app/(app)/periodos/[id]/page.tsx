@@ -20,6 +20,7 @@ import {
 import { ChargeStatus, ServiceType } from "@/lib/generated/prisma/enums"
 import { chargeStatusLabels, paymentMethodLabels } from "@/lib/labels"
 import { prisma } from "@/lib/prisma"
+import { roundToStep } from "@/lib/statements"
 import { requireAdminPage } from "@/lib/viewer"
 
 import { DeleteButton } from "../../_components/delete-button"
@@ -148,9 +149,13 @@ export default async function PeriodoWorkspacePage({
     readings: readingsInitial,
   }
 
+  // Lo que se cobra por familia se redondea a soles enteros (igual que el
+  // saldo), para que los KPIs cuadren: Total a cobrar = Pagado + Pendiente.
   const totals = statements.reduce(
     (acc, s) => {
-      acc.porCobrar += Number(s.carriedDebt) + Number(s.chargesTotal)
+      acc.porCobrar += roundToStep(
+        Number(s.carriedDebt) + Number(s.chargesTotal)
+      )
       acc.pagado += Number(s.paymentsTotal)
       acc.pendiente += Number(s.balance)
       return acc
@@ -364,6 +369,10 @@ export default async function PeriodoWorkspacePage({
               </TableBody>
             </Table>
           </div>
+          <p className="text-xs text-muted-foreground">
+            El saldo se cobra redondeado a soles enteros; puede diferir unos
+            céntimos del total exacto por el redondeo.
+          </p>
         </div>
       ) : null}
 

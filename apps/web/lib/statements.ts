@@ -1,8 +1,14 @@
 import { ChargeStatus } from "@/lib/generated/prisma/enums"
 import { prisma } from "@/lib/prisma"
+import { ROUNDING_STEP } from "@/lib/prorrateo"
 
 function round2(n: number) {
   return Math.round(n * 100) / 100
+}
+
+/** Redondea a la unidad de cobro (soles enteros por defecto). */
+export function roundToStep(n: number, step: number = ROUNDING_STEP) {
+  return Number((Math.round(n / step) * step).toFixed(2))
 }
 
 export function statusFor(
@@ -37,7 +43,10 @@ export async function recomputeStatement(periodId: number, familyId: number) {
   const chargesTotal = round2(Number(chargeAgg._sum.amount ?? 0))
   const paymentsTotal = round2(Number(paymentAgg._sum.amount ?? 0))
   const carriedDebt = round2(Number(existing?.carriedDebt ?? 0))
-  const balance = round2(carriedDebt + chargesTotal - paymentsTotal)
+  // El saldo se redondea a soles enteros (unidad de cobro). Así lo que la
+  // familia debe queda en cifras redondas y se arrastra redondeado al siguiente
+  // mes. Cargos, deuda y pagado se conservan exactos como referencia.
+  const balance = roundToStep(carriedDebt + chargesTotal - paymentsTotal)
   const status = statusFor(balance, paymentsTotal)
 
   await prisma.statement.upsert({
