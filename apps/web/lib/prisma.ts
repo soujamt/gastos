@@ -1,4 +1,4 @@
-import { PrismaMariaDb } from "@prisma/adapter-mariadb"
+import { PrismaPg } from "@prisma/adapter-pg"
 
 import { PrismaClient } from "./generated/prisma/client"
 
@@ -7,18 +7,18 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  const url = new URL(process.env.DATABASE_URL as string)
-  const adapter = new PrismaMariaDb({
-    host: url.hostname,
-    port: url.port ? Number(url.port) : 3306,
-    user: decodeURIComponent(url.username),
-    password: decodeURIComponent(url.password),
-    database: url.pathname.replace(/^\//, ""),
-    // MySQL 8 usa caching_sha2_password; permitir el intercambio de clave
-    // pública para autenticar sin SSL en conexiones locales.
-    allowPublicKeyRetrieval: true,
-    connectionLimit: 10,
+  const connectionString = process.env.DATABASE_URL as string
+
+  const adapter = new PrismaPg({
+    connectionString,
+    // En serverless cada instancia abre su propio pool: un límite alto agota
+    // las conexiones de la base. Pocas conexiones por instancia y cierre
+    // rápido de las inactivas.
+    max: process.env.VERCEL ? 1 : 5,
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 10_000,
   })
+
   return new PrismaClient({ adapter })
 }
 
