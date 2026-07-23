@@ -7,7 +7,10 @@ import { Role } from "@/lib/generated/prisma/enums"
 import { prisma } from "@/lib/prisma"
 
 const credentialsSchema = z.object({
-  email: z.string().email(),
+  // Los correos se guardan en minúsculas al crear el usuario, así que el login
+  // debe normalizar igual. Sin esto el acceso depende de que el motor compare
+  // texto sin distinguir mayúsculas (MySQL sí, PostgreSQL no).
+  email: z.string().trim().toLowerCase().email(),
   password: z.string().min(1),
 })
 
