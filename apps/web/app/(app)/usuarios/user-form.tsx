@@ -117,7 +117,7 @@ export function UserForm({
           placeholder={
             isEdit
               ? "Déjala vacía para conservar la actual"
-              : "Mínimo 6 caracteres"
+              : "Mínimo 8 caracteres"
           }
           required={!isEdit}
         />

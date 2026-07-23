@@ -215,3 +215,13 @@ model Statement {
   @@unique([periodId, familyId])
   @@index([familyId])
 }
+
+/// Intentos de acceso: permiten frenar ataques de fuerza bruta contra el login.
+model LoginAttempt {
+  id        Int      @id @default(autoincrement())
+  email     String
+  success   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+}

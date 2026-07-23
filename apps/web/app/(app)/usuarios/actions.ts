@@ -10,6 +10,10 @@ import { requireAdmin } from "@/lib/auth-guards"
 import { Role } from "@/lib/generated/prisma/enums"
 import { prisma } from "@/lib/prisma"
 
+/** Coste de bcrypt y longitud minima: la app es publica, conviene endurecer. */
+const BCRYPT_ROUNDS = 12
+const MIN_PASSWORD_LENGTH = 8
+
 export type FormState = { error?: string } | undefined
 
 const baseSchema = z.object({
@@ -51,8 +55,8 @@ export async function createUser(
   }
 
   const password = String(formData.get("password") ?? "")
-  if (password.length < 6) {
-    return { error: "La contraseña debe tener al menos 6 caracteres" }
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { error: "La contraseña debe tener al menos 8 caracteres" }
   }
 
   const exists = await prisma.user.findUnique({
@@ -68,7 +72,7 @@ export async function createUser(
       role,
       active,
       familyId: normalizeFamily(role, familyId),
-      passwordHash: await bcrypt.hash(password, 10),
+      passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS),
     },
   })
   revalidatePath("/usuarios")
@@ -93,8 +97,8 @@ export async function updateUser(
 
   const { email, name, role, familyId, active } = parsed.data
   const password = String(formData.get("password") ?? "")
-  if (password && password.length < 6) {
-    return { error: "La contraseña debe tener al menos 6 caracteres" }
+  if (password && password.length < MIN_PASSWORD_LENGTH) {
+    return { error: "La contraseña debe tener al menos 8 caracteres" }
   }
 
   await prisma.user.update({
@@ -105,7 +109,7 @@ export async function updateUser(
       role,
       active,
       familyId: normalizeFamily(role, familyId),
-      ...(password ? { passwordHash: await bcrypt.hash(password, 10) } : {}),
+      ...(password ? { passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS) } : {}),
     },
   })
   revalidatePath("/usuarios")
