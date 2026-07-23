@@ -6,8 +6,14 @@ const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient
 }
 
-function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL as string
+function createPrismaClient(): PrismaClient {
+  const connectionString = process.env.DATABASE_URL
+  if (!connectionString) {
+    throw new Error(
+      "Falta DATABASE_URL. En Vercel se agrega sola al crear la base en Storage; " +
+        "en local va en apps/web/.env"
+    )
+  }
 
   const adapter = new PrismaPg({
     connectionString,
@@ -22,8 +28,20 @@ function createPrismaClient() {
   return new PrismaClient({ adapter })
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient()
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma
+function getClient(): PrismaClient {
+  globalForPrisma.prisma ??= createPrismaClient()
+  return globalForPrisma.prisma
 }
+
+/**
+ * Cliente perezoso: se construye en el primer uso real, no al importar el
+ * módulo. El build de Next evalúa los módulos para recolectar las rutas, y así
+ * no necesita DATABASE_URL para compilar (que es lo que rompía el build).
+ */
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    const client = getClient()
+    const value = Reflect.get(client, prop, client)
+    return typeof value === "function" ? value.bind(client) : value
+  },
+})
