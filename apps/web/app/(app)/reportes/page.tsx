@@ -184,22 +184,34 @@ export default async function ReportesPage() {
   const lastKwh = sumKwh(rows[rows.length - 1])
   const previousKwh = sumKwh(rows[rows.length - 2])
 
-  /** Variación porcentual; null cuando no hay base con la que comparar. */
-  function variation(current: number, before: number) {
-    if (!before) return null
-    const pct = ((current - before) / before) * 100
-    return {
-      value: `${Math.abs(pct).toFixed(1)}%`,
-      direction: (pct > 0.05 ? "up" : pct < -0.05 ? "down" : "flat") as
-        | "up"
-        | "down"
-        | "flat",
-      pct,
+  /**
+   * Variación contra el período anterior.
+   *
+   * El dinero se compara en valor absoluto y el consumo en porcentaje: cuando
+   * la base es pequeña el porcentaje se dispara y deja de informar (pasar de
+   * S/23 a S/268 es "+1065%", que no dice nada; "+S/245" sí).
+   */
+  function variation(
+    current: number,
+    before: number,
+    unit: "pen" | "kwh"
+  ) {
+    if (before === 0 && current === 0) return null
+    const diff = current - before
+    const direction = (diff > 0 ? "up" : diff < 0 ? "down" : "flat") as
+      | "up"
+      | "down"
+      | "flat"
+    if (unit === "pen") {
+      return { value: soles.format(Math.abs(diff)), direction, diff }
     }
+    if (!before) return null
+    const pct = (diff / before) * 100
+    return { value: `${Math.abs(pct).toFixed(1)}%`, direction, diff }
   }
 
-  const pendingVar = variation(pending, previousPending)
-  const kwhVar = variation(lastKwh, previousKwh)
+  const pendingVar = variation(pending, previousPending, "pen")
+  const kwhVar = variation(lastKwh, previousKwh, "kwh")
 
   const kpis = [
     {
@@ -227,7 +239,7 @@ export default async function ReportesPage() {
             tone:
               pendingVar.direction === "flat"
                 ? ("neutral" as const)
-                : pendingVar.pct > 0
+                : pendingVar.diff > 0
                   ? ("negative" as const)
                   : ("positive" as const),
           }
@@ -246,7 +258,7 @@ export default async function ReportesPage() {
             tone:
               kwhVar.direction === "flat"
                 ? ("neutral" as const)
-                : kwhVar.pct > 0
+                : kwhVar.diff > 0
                   ? ("negative" as const)
                   : ("positive" as const),
           }
