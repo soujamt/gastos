@@ -1,10 +1,13 @@
 import {
   RiBarChartLine,
   RiFlashlightLine,
+  RiMoneyDollarCircleLine,
   RiPieChartLine,
+  RiTimeLine,
 } from "@remixicon/react"
 
-import { Badge } from "@workspace/ui/components/badge"
+import { EmptyState } from "@workspace/ui/components/empty-state"
+import { Stat } from "@workspace/ui/components/stat"
 import {
   Table,
   TableBody,
@@ -13,11 +16,12 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { ChargeStatus, ServiceType } from "@/lib/generated/prisma/enums"
-import { chargeStatusLabels, monthLabels } from "@/lib/labels"
+import { ServiceType } from "@/lib/generated/prisma/enums"
+import { monthLabels } from "@/lib/labels"
 import { prisma } from "@/lib/prisma"
 import { getViewer } from "@/lib/viewer"
 
+import { ChargeStatusDot } from "../_components/charge-status"
 import { PageHeader } from "../_components/page-header"
 import { BarChart, type ChartSeries } from "./bar-chart"
 
@@ -35,14 +39,6 @@ const palette = [
   "var(--chart-1)",
 ]
 
-function statusBadge(status: ChargeStatus) {
-  if (status === ChargeStatus.PAID)
-    return <Badge variant="success">{chargeStatusLabels.PAID}</Badge>
-  if (status === ChargeStatus.PARTIAL)
-    return <Badge variant="warning">{chargeStatusLabels.PARTIAL}</Badge>
-  return <Badge variant="danger">{chargeStatusLabels.PENDING}</Badge>
-}
-
 function Panel({
   title,
   icon: Icon,
@@ -53,7 +49,7 @@ function Panel({
   children: React.ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border bg-card shadow-[0_12px_32px_rgba(20,45,40,0.035)]">
+    <section className="overflow-hidden rounded-2xl border bg-card shadow-panel">
       <h2 className="flex items-center gap-2 border-b px-5 py-4 text-sm font-medium sm:px-6">
         <Icon className="size-4 text-primary" />
         {title}
@@ -99,15 +95,11 @@ export default async function ReportesPage() {
           eyebrow="Análisis"
           description="Consumo, morosidad y estados de cuenta por familia."
         />
-        <div className="flex flex-col items-center rounded-2xl border border-dashed bg-card p-12 text-center shadow-sm">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <RiBarChartLine className="size-6" />
-          </div>
-          <h2 className="mt-4 font-semibold">Aún no hay datos</h2>
-          <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">
-            Registra al menos un período con su consumo para ver los reportes.
-          </p>
-        </div>
+        <EmptyState
+          icon={RiBarChartLine}
+          title="Aún no hay datos"
+          description="Registra al menos un período con su consumo para ver los reportes."
+        />
       </div>
     )
   }
@@ -181,14 +173,85 @@ export default async function ReportesPage() {
     0
   )
 
+  // Variación del último período contra el anterior, para dar contexto al dato.
+  const previous = periods[periods.length - 2]
+  const previousPending = (previous?.statements ?? [])
+    .filter((st) => visibleFamilyIds.has(st.familyId))
+    .reduce((sum, st) => sum + Math.max(0, Number(st.balance)), 0)
+
+  const sumKwh = (row?: (typeof rows)[number]) =>
+    row ? Object.values(row.kwhByFamily).reduce((a, b) => a + b, 0) : 0
+  const lastKwh = sumKwh(rows[rows.length - 1])
+  const previousKwh = sumKwh(rows[rows.length - 2])
+
+  /** Variación porcentual; null cuando no hay base con la que comparar. */
+  function variation(current: number, before: number) {
+    if (!before) return null
+    const pct = ((current - before) / before) * 100
+    return {
+      value: `${Math.abs(pct).toFixed(1)}%`,
+      direction: (pct > 0.05 ? "up" : pct < -0.05 ? "down" : "flat") as
+        | "up"
+        | "down"
+        | "flat",
+      pct,
+    }
+  }
+
+  const pendingVar = variation(pending, previousPending)
+  const kwhVar = variation(lastKwh, previousKwh)
+
   const kpis = [
-    { label: "Cargos del histórico", value: soles.format(totalBilled) },
-    { label: "Cobrado", value: soles.format(totalPaid) },
     {
-      label: `Pendiente (${latest?.label ?? "—"})`,
-      value: soles.format(pending),
+      label: "Cargos del histórico",
+      value: soles.format(totalBilled),
+      icon: RiBarChartLine,
+      hint: `${periods.length} períodos registrados`,
     },
-    { label: "Consumo total", value: `${totalKwh} kWh` },
+    {
+      label: "Cobrado",
+      value: soles.format(totalPaid),
+      icon: RiMoneyDollarCircleLine,
+      hint: "Suma de todos los abonos",
+    },
+    {
+      label: `Pendiente · ${latest?.label ?? "—"}`,
+      value: soles.format(pending),
+      icon: RiTimeLine,
+      hint: previous ? `vs ${previous.label}` : undefined,
+      // Que suba lo pendiente es una mala señal.
+      delta: pendingVar
+        ? {
+            value: pendingVar.value,
+            direction: pendingVar.direction,
+            tone:
+              pendingVar.direction === "flat"
+                ? ("neutral" as const)
+                : pendingVar.pct > 0
+                  ? ("negative" as const)
+                  : ("positive" as const),
+          }
+        : undefined,
+    },
+    {
+      label: `Consumo · ${latest?.label ?? "—"}`,
+      value: `${lastKwh} kWh`,
+      icon: RiFlashlightLine,
+      hint: previous ? `vs ${previous.label}` : undefined,
+      // Consumir menos luz también es una buena señal.
+      delta: kwhVar
+        ? {
+            value: kwhVar.value,
+            direction: kwhVar.direction,
+            tone:
+              kwhVar.direction === "flat"
+                ? ("neutral" as const)
+                : kwhVar.pct > 0
+                  ? ("negative" as const)
+                  : ("positive" as const),
+          }
+        : undefined,
+    },
   ]
 
   return (
@@ -199,14 +262,16 @@ export default async function ReportesPage() {
         description="Evolución del consumo, recibos y morosidad por familia."
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((k) => (
-          <div key={k.label} className="rounded-2xl border bg-card p-4 shadow-sm">
-            <p className="text-xs text-muted-foreground">{k.label}</p>
-            <p className="mt-1.5 text-xl font-semibold tracking-[-0.03em] tabular-nums">
-              {k.value}
-            </p>
-          </div>
+          <Stat
+            key={k.label}
+            label={k.label}
+            value={k.value}
+            hint={k.hint}
+            delta={k.delta}
+            icon={k.icon}
+          />
         ))}
       </div>
 
@@ -299,7 +364,7 @@ export default async function ReportesPage() {
                   <TableCell className="text-right font-medium tabular-nums">
                     {soles.format(Number(st.balance))}
                   </TableCell>
-                  <TableCell>{statusBadge(st.status)}</TableCell>
+                  <TableCell><ChargeStatusDot status={st.status} /></TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { RiCalendar2Line, RiPulseLine } from "@remixicon/react"
 
-import { Badge } from "@workspace/ui/components/badge"
+import { StatusDot } from "@workspace/ui/components/status-dot"
 import {
   Table,
   TableBody,
@@ -15,6 +15,7 @@ import { prisma } from "@/lib/prisma"
 
 import { DeleteButton } from "../_components/delete-button"
 import { FormDialog } from "../_components/form-dialog"
+import { DataPanel } from "../_components/data-panel"
 import { PageHeader } from "../_components/page-header"
 import { createPeriod, deletePeriod, updatePeriod } from "./actions"
 import { PeriodForm } from "./period-form"
@@ -61,17 +62,18 @@ export default async function PeriodosPage() {
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border bg-card shadow-[0_12px_32px_rgba(20,45,40,0.035)]">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b px-5 py-4 text-sm sm:px-6">
-            <div className="flex items-center gap-2 font-medium">
-              <RiCalendar2Line className="size-4 text-primary" />
-              {periods.length} {periods.length === 1 ? "período" : "períodos"}
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <RiPulseLine className="size-4" />
-              {openCount} {openCount === 1 ? "abierto" : "abiertos"}
-            </div>
-          </div>
+        <DataPanel
+          meta={[
+            {
+              icon: RiCalendar2Line,
+              label: `${periods.length} ${periods.length === 1 ? "período" : "períodos"}`,
+            },
+            {
+              icon: RiPulseLine,
+              label: `${openCount} ${openCount === 1 ? "abierto" : "abiertos"}`,
+            },
+          ]}
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -98,9 +100,13 @@ export default async function PeriodosPage() {
                   </TableCell>
                   <TableCell>
                     {period.status === "OPEN" ? (
-                      <Badge variant="warning">{periodStatusLabels.OPEN}</Badge>
+                      <StatusDot tone="warning">
+                        {periodStatusLabels.OPEN}
+                      </StatusDot>
                     ) : (
-                      <Badge variant="muted">{periodStatusLabels.CLOSED}</Badge>
+                      <StatusDot tone="muted">
+                        {periodStatusLabels.CLOSED}
+                      </StatusDot>
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
@@ -136,7 +142,7 @@ export default async function PeriodosPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </DataPanel>
       )}
     </div>
   )

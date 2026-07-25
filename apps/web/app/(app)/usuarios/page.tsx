@@ -1,6 +1,7 @@
 import { RiShieldUserLine, RiUserSettingsLine } from "@remixicon/react"
 
-import { Badge } from "@workspace/ui/components/badge"
+import { AvatarLabel } from "@workspace/ui/components/avatar"
+import { StatusDot } from "@workspace/ui/components/status-dot"
 import {
   Table,
   TableBody,
@@ -12,6 +13,7 @@ import {
 import { roleLabels } from "@/lib/labels"
 import { prisma } from "@/lib/prisma"
 
+import { DataPanel } from "../_components/data-panel"
 import { DeleteButton } from "../_components/delete-button"
 import { FormDialog } from "../_components/form-dialog"
 import { PageHeader } from "../_components/page-header"
@@ -57,23 +59,22 @@ export default async function UsuariosPage() {
         }
       />
 
-      <div className="overflow-hidden rounded-2xl border bg-card shadow-[0_12px_32px_rgba(20,45,40,0.035)]">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b px-5 py-4 text-sm sm:px-6">
-          <div className="flex items-center gap-2 font-medium">
-            <RiUserSettingsLine className="size-4 text-primary" />
-            {users.length} {users.length === 1 ? "usuario" : "usuarios"}
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <RiShieldUserLine className="size-4" />
-            {adminCount}{" "}
-            {adminCount === 1 ? "administrador" : "administradores"}
-          </div>
-        </div>
+      <DataPanel
+        meta={[
+          {
+            icon: RiUserSettingsLine,
+            label: `${users.length} ${users.length === 1 ? "usuario" : "usuarios"}`,
+          },
+          {
+            icon: RiShieldUserLine,
+            label: `${adminCount} ${adminCount === 1 ? "administrador" : "administradores"}`,
+          },
+        ]}
+      >
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Correo</TableHead>
-              <TableHead>Nombre</TableHead>
+              <TableHead>Usuario</TableHead>
               <TableHead>Rol</TableHead>
               <TableHead>Familia</TableHead>
               <TableHead>Estado</TableHead>
@@ -83,20 +84,20 @@ export default async function UsuariosPage() {
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.email}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {user.name ?? "—"}
+                <TableCell>
+                  <AvatarLabel
+                    name={user.name ?? user.email}
+                    hint={user.name ? user.email : undefined}
+                  />
                 </TableCell>
                 <TableCell>{roleLabels[user.role]}</TableCell>
                 <TableCell className="text-muted-foreground">
                   {user.family?.name ?? "—"}
                 </TableCell>
                 <TableCell>
-                  {user.active ? (
-                    <Badge variant="success">Activo</Badge>
-                  ) : (
-                    <Badge variant="muted">Inactivo</Badge>
-                  )}
+                  <StatusDot tone={user.active ? "success" : "muted"}>
+                    {user.active ? "Activo" : "Inactivo"}
+                  </StatusDot>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-1">
@@ -131,7 +132,7 @@ export default async function UsuariosPage() {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </DataPanel>
     </div>
   )
 }

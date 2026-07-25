@@ -26,7 +26,7 @@ export function LoginForm() {
         </p>
       </div>
 
-      <div className="mt-8 rounded-2xl border bg-card p-5 shadow-[0_18px_50px_rgba(20,45,40,0.07)] sm:p-7">
+      <div className="mt-8 rounded-2xl border bg-card p-5 shadow-panel sm:p-7">
         <form action={formAction} className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
             <Label htmlFor="email">Correo electrónico</Label>

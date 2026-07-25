@@ -1,6 +1,7 @@
 import { RiGroupLine, RiPulseLine } from "@remixicon/react"
 
 import { Badge } from "@workspace/ui/components/badge"
+import { StatusDot } from "@workspace/ui/components/status-dot"
 import {
   Table,
   TableBody,
@@ -13,6 +14,7 @@ import { prisma } from "@/lib/prisma"
 
 import { DeleteButton } from "../_components/delete-button"
 import { FormDialog } from "../_components/form-dialog"
+import { DataPanel } from "../_components/data-panel"
 import { PageHeader } from "../_components/page-header"
 import { createFamily, deleteFamily, updateFamily } from "./actions"
 import { FamilyForm } from "./family-form"
@@ -59,17 +61,15 @@ export default async function FamiliasPage() {
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border bg-card shadow-[0_12px_32px_rgba(20,45,40,0.035)]">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b px-5 py-4 text-sm sm:px-6">
-            <div className="flex items-center gap-2 font-medium">
-              <RiGroupLine className="size-4 text-primary" />
-              {families.length} {families.length === 1 ? "familia" : "familias"}
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <RiPulseLine className="size-4" />
-              {activeCount} activas
-            </div>
-          </div>
+        <DataPanel
+          meta={[
+            {
+              icon: RiGroupLine,
+              label: `${families.length} ${families.length === 1 ? "familia" : "familias"}`,
+            },
+            { icon: RiPulseLine, label: `${activeCount} activas` },
+          ]}
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -96,9 +96,9 @@ export default async function FamiliasPage() {
                   </TableCell>
                   <TableCell>
                     {family.active ? (
-                      <Badge variant="success">Activa</Badge>
+                      <StatusDot tone="success">Activa</StatusDot>
                     ) : (
-                      <Badge variant="muted">Inactiva</Badge>
+                      <StatusDot tone="muted">Inactiva</StatusDot>
                     )}
                   </TableCell>
                   <TableCell>
@@ -131,7 +131,7 @@ export default async function FamiliasPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </DataPanel>
       )}
     </div>
   )

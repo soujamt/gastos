@@ -13,7 +13,7 @@ import {
 } from "@/lib/generated/prisma/enums"
 import { monthLabels } from "@/lib/labels"
 import { prisma } from "@/lib/prisma"
-import { computeShares, restoKwh } from "@/lib/prorrateo"
+import { computeShares, restoKwh, splitEqually } from "@/lib/prorrateo"
 import { recomputeAllStatements, recomputeStatement } from "@/lib/statements"
 
 export type FormState = { error?: string } | undefined
@@ -277,9 +277,14 @@ export async function saveOtherCharges(
     prisma.family.findMany({ where: { active: true }, select: { id: true, name: true } }),
     prisma.service.findMany({
       where: { active: true, type: { not: ServiceType.METERED } },
-      select: { id: true, name: true },
+      select: { id: true, name: true, type: true },
     }),
   ])
+
+  // "Partes iguales" recibe un único total y lo divide; los demás tipos reciben
+  // un monto por familia.
+  const equalServices = services.filter((s) => s.type === ServiceType.EQUAL)
+  const perFamilyServices = services.filter((s) => s.type !== ServiceType.EQUAL)
 
   // Se valida todo antes de escribir, para no dejar el período a medias.
   const debts: { familyId: number; carriedDebt: number }[] = []
@@ -293,7 +298,7 @@ export async function saveOtherCharges(
     }
     debts.push({ familyId: fam.id, carriedDebt })
 
-    for (const svc of services) {
+    for (const svc of perFamilyServices) {
       const raw = formData.get(`charge_${svc.id}_${fam.id}`)
       const amount = raw ? Number(raw) : 0
       if (!Number.isFinite(amount) || amount < 0) {
@@ -302,6 +307,30 @@ export async function saveOtherCharges(
         }
       }
       charges.push({ familyId: fam.id, serviceId: svc.id, amount })
+    }
+  }
+
+  for (const svc of equalServices) {
+    const raw = formData.get(`equal_${svc.id}`)
+    const total = raw ? Number(raw) : 0
+    if (!Number.isFinite(total) || total < 0) {
+      return { error: `El total de ${svc.name} debe ser 0 o mayor` }
+    }
+    if (total === 0 || families.length === 0) {
+      for (const fam of families) {
+        charges.push({ familyId: fam.id, serviceId: svc.id, amount: 0 })
+      }
+      continue
+    }
+    for (const share of splitEqually(
+      total,
+      families.map((f) => f.id)
+    )) {
+      charges.push({
+        familyId: share.id,
+        serviceId: svc.id,
+        amount: share.amount,
+      })
     }
   }
 

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { RiMoneyDollarCircleLine } from "@remixicon/react"
 
+import { AvatarLabel } from "@workspace/ui/components/avatar"
 import {
   Table,
   TableBody,
@@ -14,6 +15,7 @@ import { prisma } from "@/lib/prisma"
 import { familyFilter, getViewer } from "@/lib/viewer"
 
 import { DeleteButton } from "../_components/delete-button"
+import { DataPanel } from "../_components/data-panel"
 import { PageHeader } from "../_components/page-header"
 import { deletePayment } from "../periodos/actions"
 
@@ -64,12 +66,14 @@ export default async function PagosPage() {
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border bg-card shadow-[0_12px_32px_rgba(20,45,40,0.035)]">
-          <div className="flex items-center gap-2 border-b px-5 py-4 text-sm font-medium sm:px-6">
-            <RiMoneyDollarCircleLine className="size-4 text-primary" />
-            {payments.length}{" "}
-            {payments.length === 1 ? "movimiento" : "movimientos"}
-          </div>
+        <DataPanel
+          meta={[
+            {
+              icon: RiMoneyDollarCircleLine,
+              label: `${payments.length} ${payments.length === 1 ? "movimiento" : "movimientos"}`,
+            },
+          ]}
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -90,7 +94,7 @@ export default async function PagosPage() {
                   </TableCell>
                   {isAdmin ? (
                     <TableCell className="font-medium">
-                      {p.family.name}
+                      <AvatarLabel name={p.family.name} />
                     </TableCell>
                   ) : null}
                   <TableCell>
@@ -126,7 +130,7 @@ export default async function PagosPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </DataPanel>
       )}
     </div>
   )

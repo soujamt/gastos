@@ -94,6 +94,24 @@ export function computeShares(
 }
 
 /**
+ * Reparte un total en partes iguales entre varias familias. Reutiliza el mismo
+ * motor dándole peso 1 a cada una, así el redondeo y la reconciliación de
+ * sobrantes se comportan igual que en el prorrateo por consumo:
+ * S/70 entre 3 → 24 + 23 + 23, nunca 23.33 tres veces.
+ */
+export function splitEqually(
+  total: number,
+  ids: number[],
+  step: number = ROUNDING_STEP
+): ShareResult[] {
+  return computeShares(
+    total,
+    ids.map((id) => ({ id, kwh: 1 })),
+    step
+  ).shares
+}
+
+/**
  * Consumo de la familia "resto" (sin sub-medidor): lo que marca el medidor
  * principal menos lo medido por las demás. Nunca negativo.
  */

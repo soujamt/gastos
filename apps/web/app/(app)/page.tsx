@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { Stat } from "@workspace/ui/components/stat"
 import { cn } from "@workspace/ui/lib/utils"
 import { prisma } from "@/lib/prisma"
 import { familyFilter, getViewer } from "@/lib/viewer"
@@ -132,7 +133,7 @@ export default async function DashboardPage() {
       </div>
 
       <section className="grid gap-4 xl:grid-cols-[1.55fr_1fr]">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/80 p-6 text-primary-foreground shadow-[0_24px_60px_rgba(15,105,93,0.18)] sm:p-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/80 p-6 text-primary-foreground shadow-hero sm:p-8">
           <div className="absolute -top-24 -right-16 size-64 rounded-full border border-white/10" />
           <div className="absolute -right-6 -bottom-24 size-52 rounded-full bg-white/[0.06]" />
           <div className="relative">
@@ -247,29 +248,15 @@ export default async function DashboardPage() {
       </section>
 
       <section className="grid gap-4 sm:grid-cols-3">
-        {stats.map((stat) => {
-          const Icon = stat.icon
-          return (
-            <Card key={stat.label} className="gap-3">
-              <CardHeader className="flex-row items-center justify-between">
-                <CardTitle className="text-xs font-medium text-muted-foreground">
-                  {stat.label}
-                </CardTitle>
-                <span className="flex size-9 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                  <Icon className="size-4" />
-                </span>
-              </CardHeader>
-              <CardContent>
-                <span className="text-3xl font-semibold tracking-[-0.04em]">
-                  {stat.value}
-                </span>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {stat.detail}
-                </p>
-              </CardContent>
-            </Card>
-          )
-        })}
+        {stats.map((stat) => (
+          <Stat
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            hint={stat.detail}
+            icon={stat.icon}
+          />
+        ))}
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">

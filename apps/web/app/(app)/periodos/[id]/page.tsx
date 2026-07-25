@@ -1,14 +1,23 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import {
+  RiBankCardLine,
+  RiCheckboxCircleLine,
+  RiFileTextLine,
+  RiFlashlightLine,
+  RiTimeLine,
+} from "@remixicon/react"
 
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
+import { Button, buttonVariants } from "@workspace/ui/components/button"
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { Stat } from "@workspace/ui/components/stat"
+import { cn } from "@workspace/ui/lib/utils"
 import {
   Table,
   TableBody,
@@ -23,6 +32,7 @@ import { prisma } from "@/lib/prisma"
 import { roundToStep } from "@/lib/statements"
 import { requireAdminPage } from "@/lib/viewer"
 
+import { ChargeStatusDot } from "../../_components/charge-status"
 import { DeleteButton } from "../../_components/delete-button"
 import { FormDialog } from "../../_components/form-dialog"
 import {
@@ -51,14 +61,6 @@ const shortDate = new Intl.DateTimeFormat("es-PE", {
   month: "short",
 })
 
-function statusBadge(status: ChargeStatus) {
-  if (status === ChargeStatus.PAID)
-    return <Badge variant="success">{chargeStatusLabels.PAID}</Badge>
-  if (status === ChargeStatus.PARTIAL)
-    return <Badge variant="warning">{chargeStatusLabels.PARTIAL}</Badge>
-  return <Badge variant="danger">{chargeStatusLabels.PENDING}</Badge>
-}
-
 export default async function PeriodoWorkspacePage({
   params,
 }: {
@@ -82,7 +84,7 @@ export default async function PeriodoWorkspacePage({
       prisma.service.findMany({
         where: { active: true, type: { not: ServiceType.METERED } },
         orderBy: { name: "asc" },
-        select: { id: true, name: true },
+        select: { id: true, name: true, type: true },
       }),
       prisma.family.findMany({
         where: { active: true },
@@ -104,11 +106,26 @@ export default async function PeriodoWorkspacePage({
   const otherCharges = await prisma.charge.findMany({
     where: { periodId, serviceId: { in: otherServices.map((s) => s.id) } },
   })
-  const otherInitial: OtherChargesInitial = { debts: {}, charges: {} }
+  const otherInitial: OtherChargesInitial = {
+    debts: {},
+    charges: {},
+    equalTotals: {},
+  }
+  // El total de un servicio en partes iguales se reconstruye sumando sus cargos.
+  for (const svc of otherServices.filter((s) => s.type === ServiceType.EQUAL)) {
+    const total = otherCharges
+      .filter((c) => c.serviceId === svc.id)
+      .reduce((sum, c) => sum + Number(c.amount), 0)
+    if (total > 0) otherInitial.equalTotals[svc.id] = String(total)
+  }
   for (const st of statements) {
     otherInitial.debts[st.familyId] = String(Number(st.carriedDebt))
   }
+  const equalIds = new Set(
+    otherServices.filter((s) => s.type === ServiceType.EQUAL).map((s) => s.id)
+  )
   for (const c of otherCharges) {
+    if (equalIds.has(c.serviceId)) continue
     otherInitial.charges[`${c.serviceId}_${c.familyId}`] = String(
       Number(c.amount)
     )
@@ -213,55 +230,39 @@ export default async function PeriodoWorkspacePage({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xs font-normal text-muted-foreground">
-              Total a cobrar
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-2xl font-medium">
-              {soles.format(totals.porCobrar)}
-            </span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xs font-normal text-muted-foreground">
-              Pagado
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-2xl font-medium text-emerald-600 dark:text-emerald-400">
-              {soles.format(totals.pagado)}
-            </span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xs font-normal text-muted-foreground">
-              Pendiente
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-2xl font-medium text-destructive">
-              {soles.format(totals.pendiente)}
-            </span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xs font-normal text-muted-foreground">
-              Total kWh
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-2xl font-medium">
-              {bill?.totalKwh ?? "—"}
-            </span>
-          </CardContent>
-        </Card>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Stat
+          label="Total a cobrar"
+          value={soles.format(totals.porCobrar)}
+          icon={RiBankCardLine}
+          hint={`${statements.length} familias`}
+        />
+        <Stat
+          label="Pagado"
+          value={soles.format(totals.pagado)}
+          icon={RiCheckboxCircleLine}
+          delta={
+            totals.porCobrar > 0
+              ? {
+                  value: `${Math.min(100, Math.round((totals.pagado / totals.porCobrar) * 100))}%`,
+                  direction: "up",
+                  tone: "positive",
+                }
+              : undefined
+          }
+        />
+        <Stat
+          label="Pendiente"
+          value={soles.format(totals.pendiente)}
+          icon={RiTimeLine}
+          hint={totals.pendiente > 0 ? "Por conciliar" : "Todo conciliado"}
+        />
+        <Stat
+          label="Total kWh"
+          value={bill?.totalKwh ?? "—"}
+          icon={RiFlashlightLine}
+          hint={`Consumo de ${period.days} días`}
+        />
       </div>
 
       {!service ? (
@@ -336,6 +337,7 @@ export default async function PeriodoWorkspacePage({
                   <TableHead className="text-right">Pagado</TableHead>
                   <TableHead className="text-right">Saldo</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead className="w-12" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -362,7 +364,23 @@ export default async function PeriodoWorkspacePage({
                       <TableCell className="text-right font-medium tabular-nums">
                         {soles.format(Number(s.balance))}
                       </TableCell>
-                      <TableCell>{statusBadge(s.status)}</TableCell>
+                      <TableCell><ChargeStatusDot status={s.status} /></TableCell>
+                      <TableCell className="text-right">
+                        <Link
+                          href={`/estado/${periodId}/${s.familyId}`}
+                          aria-label={`Estado de cuenta de ${s.family.name}`}
+                          title="Ver estado de cuenta imprimible"
+                          className={cn(
+                            buttonVariants({
+                              variant: "ghost",
+                              size: "icon-sm",
+                            }),
+                            "text-muted-foreground"
+                          )}
+                        >
+                          <RiFileTextLine />
+                        </Link>
+                      </TableCell>
                     </TableRow>
                   )
                 })}

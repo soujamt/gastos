@@ -48,6 +48,11 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
   --font-sans: var(--font-sans);
+  /* Sombras neutras compartidas: antes cada pantalla repetía un rgba con tinte
+     verde, que reñía con la paleta neutral. */
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px rgb(0 0 0 / 0.04);
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.03), 0 16px 40px rgb(0 0 0 / 0.05);
+  --shadow-hero: 0 24px 60px rgb(0 0 0 / 0.16);
 }
 
 :root {
@@ -169,5 +174,16 @@
   }
   ::selection {
     background: color-mix(in oklch, var(--primary) 22%, transparent);
+  }
+}
+
+/* Impresión: papel blanco, sin degradados ni sombras que gasten tinta. */
+@media print {
+  body {
+    background: white !important;
+    background-image: none !important;
+  }
+  * {
+    box-shadow: none !important;
   }
 }

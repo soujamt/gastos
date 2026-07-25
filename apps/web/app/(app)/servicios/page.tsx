@@ -1,6 +1,7 @@
 import { RiFlashlightLine, RiPulseLine } from "@remixicon/react"
 
 import { Badge } from "@workspace/ui/components/badge"
+import { StatusDot } from "@workspace/ui/components/status-dot"
 import {
   Table,
   TableBody,
@@ -14,6 +15,7 @@ import { prisma } from "@/lib/prisma"
 
 import { DeleteButton } from "../_components/delete-button"
 import { FormDialog } from "../_components/form-dialog"
+import { DataPanel } from "../_components/data-panel"
 import { PageHeader } from "../_components/page-header"
 import { createService, deleteService, updateService } from "./actions"
 import { ServiceForm } from "./service-form"
@@ -58,18 +60,15 @@ export default async function ServiciosPage() {
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border bg-card shadow-[0_12px_32px_rgba(20,45,40,0.035)]">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b px-5 py-4 text-sm sm:px-6">
-            <div className="flex items-center gap-2 font-medium">
-              <RiFlashlightLine className="size-4 text-primary" />
-              {services.length}{" "}
-              {services.length === 1 ? "servicio" : "servicios"}
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <RiPulseLine className="size-4" />
-              {activeCount} activos
-            </div>
-          </div>
+        <DataPanel
+          meta={[
+            {
+              icon: RiFlashlightLine,
+              label: `${services.length} ${services.length === 1 ? "servicio" : "servicios"}`,
+            },
+            { icon: RiPulseLine, label: `${activeCount} activos` },
+          ]}
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -90,9 +89,9 @@ export default async function ServiciosPage() {
                   </TableCell>
                   <TableCell>
                     {service.active ? (
-                      <Badge variant="success">Activo</Badge>
+                      <StatusDot tone="success">Activo</StatusDot>
                     ) : (
-                      <Badge variant="muted">Inactivo</Badge>
+                      <StatusDot tone="muted">Inactivo</StatusDot>
                     )}
                   </TableCell>
                   <TableCell>
@@ -125,7 +124,7 @@ export default async function ServiciosPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </DataPanel>
       )}
     </div>
   )
