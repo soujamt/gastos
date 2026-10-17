@@ -18,7 +18,7 @@ export default async function LoginPage() {
 
   return (
     <div className="grid min-h-svh lg:grid-cols-[1.08fr_0.92fr]">
-      <section className="relative hidden overflow-hidden bg-sidebar p-12 text-sidebar-foreground lg:flex lg:flex-col lg:justify-between xl:p-16">
+      <section className="dark relative hidden overflow-hidden bg-sidebar p-12 text-sidebar-foreground lg:flex lg:flex-col lg:justify-between xl:p-16">
         <div className="absolute -top-44 -left-28 size-[34rem] rounded-full border border-white/[0.06]" />
         <div className="absolute top-28 -left-32 size-96 rounded-full bg-white/[0.025]" />
         <div className="relative flex items-center gap-3">

@@ -12,11 +12,16 @@ import {
   DialogPortal,
   DialogTrigger,
 } from "@workspace/ui/components/dialog"
-import { cn } from "@workspace/ui/lib/utils"
 
 import { BrandLogo } from "@/components/brand-logo"
 
-import { visibleNavGroups } from "./sidebar-nav"
+import {
+  NavGroupLabel,
+  NavItemContent,
+  isActiveHref,
+  navItemClassName,
+  visibleNavGroups,
+} from "./sidebar-nav"
 
 export function MobileNavigation({ isAdmin = true }: { isAdmin?: boolean }) {
   const pathname = usePathname()
@@ -32,29 +37,26 @@ export function MobileNavigation({ isAdmin = true }: { isAdmin?: boolean }) {
       </DialogTrigger>
       <DialogPortal>
         <DialogBackdrop />
-        <DialogPopup className="top-0 left-0 h-dvh max-h-dvh w-[min(88vw,320px)] max-w-none translate-x-0 translate-y-0 rounded-none rounded-r-3xl border-y-0 border-l-0 bg-sidebar text-sidebar-foreground duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] data-ending-style:-translate-x-full data-ending-style:translate-y-0 data-ending-style:scale-100 data-ending-style:duration-200 data-starting-style:-translate-x-full data-starting-style:translate-y-0 data-starting-style:scale-100">
-          <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
+        <DialogPopup className="top-0 left-0 h-dvh max-h-dvh w-[min(88vw,320px)] max-w-none translate-x-0 translate-y-0 rounded-none rounded-r-2xl border-y-0 border-l-0 bg-sidebar text-sidebar-foreground duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] data-ending-style:-translate-x-full data-ending-style:translate-y-0 data-ending-style:scale-100 data-ending-style:duration-200 data-starting-style:-translate-x-full data-starting-style:translate-y-0 data-starting-style:scale-100">
+          <div className="flex h-16 items-center gap-3 px-5">
             <BrandLogo size={36} />
-            <div>
+            <div className="leading-tight">
               <div className="font-semibold tracking-[-0.02em]">GastosFam</div>
-              <div className="text-[11px] text-sidebar-foreground/45">
+              <div className="text-[11px] text-sidebar-foreground/55">
                 Finanzas compartidas
               </div>
             </div>
           </div>
 
-          <nav className="flex flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 py-5">
+          <nav
+            aria-label="Principal"
+            className="flex flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-3 py-2"
+          >
             {groups.map((group) => (
-              <div key={group.label} className="flex flex-col gap-1">
-                <span className="px-2 pb-2 text-[10px] font-semibold tracking-[0.14em] text-sidebar-foreground/40 uppercase">
-                  {group.label}
-                </span>
+              <div key={group.label} className="flex flex-col gap-0.5">
+                <NavGroupLabel>{group.label}</NavGroupLabel>
                 {group.items.map((item) => {
-                  const active =
-                    item.href === "/"
-                      ? pathname === "/"
-                      : pathname.startsWith(item.href)
-                  const Icon = item.icon
+                  const active = isActiveHref(pathname, item.href)
                   return (
                     <DialogClose
                       key={item.href}
@@ -64,26 +66,12 @@ export function MobileNavigation({ isAdmin = true }: { isAdmin?: boolean }) {
                       render={
                         <Link
                           href={item.href}
-                          className={cn(
-                            "flex h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors",
-                            active
-                              ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground"
-                              : "text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-                          )}
+                          aria-current={active ? "page" : undefined}
+                          className={navItemClassName(active, true)}
                         />
                       }
                     >
-                      <span
-                        className={cn(
-                          "flex size-7 items-center justify-center rounded-lg",
-                          active
-                            ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                            : "text-sidebar-foreground/50"
-                        )}
-                      >
-                        <Icon className="size-[17px]" />
-                      </span>
-                      {item.label}
+                      <NavItemContent item={item} active={active} />
                     </DialogClose>
                   )
                 })}

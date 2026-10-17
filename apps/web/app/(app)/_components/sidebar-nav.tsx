@@ -4,14 +4,23 @@ import type { RemixiconComponentType } from "@remixicon/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  RiBarChartFill,
   RiBarChartLine,
+  RiCalendar2Fill,
   RiCalendar2Line,
+  RiDashboardFill,
   RiDashboardLine,
+  RiFlashlightFill,
   RiFlashlightLine,
+  RiGroupFill,
   RiGroupLine,
+  RiMoneyDollarCircleFill,
   RiMoneyDollarCircleLine,
+  RiSettings3Fill,
   RiSettings3Line,
+  RiSpeedUpFill,
   RiSpeedUpLine,
+  RiUserSettingsFill,
   RiUserSettingsLine,
 } from "@remixicon/react"
 
@@ -21,6 +30,8 @@ type NavItem = {
   href: string
   label: string
   icon: RemixiconComponentType
+  /** Variante rellena: marca el módulo activo; el contorno es el reposo. */
+  activeIcon: RemixiconComponentType
   adminOnly?: boolean
 }
 
@@ -28,33 +39,52 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: "Control",
     items: [
-      { href: "/", label: "Dashboard", icon: RiDashboardLine },
+      {
+        href: "/",
+        label: "Dashboard",
+        icon: RiDashboardLine,
+        activeIcon: RiDashboardFill,
+      },
       {
         href: "/periodos",
         label: "Períodos",
         icon: RiCalendar2Line,
+        activeIcon: RiCalendar2Fill,
         adminOnly: true,
       },
       {
         href: "/familias",
         label: "Familias",
         icon: RiGroupLine,
+        activeIcon: RiGroupFill,
         adminOnly: true,
       },
       {
         href: "/servicios",
         label: "Servicios",
         icon: RiFlashlightLine,
+        activeIcon: RiFlashlightFill,
         adminOnly: true,
       },
       {
         href: "/lecturas",
         label: "Lecturas",
         icon: RiSpeedUpLine,
+        activeIcon: RiSpeedUpFill,
         adminOnly: true,
       },
-      { href: "/pagos", label: "Pagos", icon: RiMoneyDollarCircleLine },
-      { href: "/reportes", label: "Reportes", icon: RiBarChartLine },
+      {
+        href: "/pagos",
+        label: "Pagos",
+        icon: RiMoneyDollarCircleLine,
+        activeIcon: RiMoneyDollarCircleFill,
+      },
+      {
+        href: "/reportes",
+        label: "Reportes",
+        icon: RiBarChartLine,
+        activeIcon: RiBarChartFill,
+      },
     ],
   },
   {
@@ -64,12 +94,14 @@ export const navGroups: { label: string; items: NavItem[] }[] = [
         href: "/usuarios",
         label: "Usuarios",
         icon: RiUserSettingsLine,
+        activeIcon: RiUserSettingsFill,
         adminOnly: true,
       },
       {
         href: "/configuracion",
         label: "Configuración",
         icon: RiSettings3Line,
+        activeIcon: RiSettings3Fill,
         adminOnly: true,
       },
     ],
@@ -87,45 +119,96 @@ export function visibleNavGroups(isAdmin: boolean) {
     .filter((group) => group.items.length > 0)
 }
 
-export function SidebarNav({ isAdmin = true }: { isAdmin?: boolean }) {
+export function isActiveHref(pathname: string, href: string) {
+  return href === "/" ? pathname === "/" : pathname.startsWith(href)
+}
+
+/**
+ * Estilo único de un módulo en la navegación (barra lateral y cajón móvil).
+ * El activo es una píldora sobre el lienzo; el resto, texto atenuado.
+ */
+export function navItemClassName(active: boolean, touch = false) {
+  return cn(
+    "group flex items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+    touch ? "h-11" : "h-9",
+    active
+      ? "bg-sidebar-active font-medium text-sidebar-foreground shadow-surface"
+      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+  )
+}
+
+export function NavItemContent({
+  item,
+  active,
+  count,
+}: {
+  item: NavItem
+  active: boolean
+  count?: number
+}) {
+  const Icon = active ? item.activeIcon : item.icon
+  return (
+    <>
+      <Icon
+        aria-hidden="true"
+        className={cn(
+          "size-[18px] shrink-0",
+          active
+            ? "text-sidebar-foreground"
+            : "text-sidebar-foreground/55 group-hover:text-sidebar-foreground"
+        )}
+      />
+      <span className="truncate">{item.label}</span>
+      {count ? (
+        <span className="ml-auto min-w-5 rounded-md border border-sidebar-border px-1.5 text-center text-[11px] leading-5 font-medium text-sidebar-foreground/70 tabular-nums">
+          {count}
+        </span>
+      ) : null}
+    </>
+  )
+}
+
+export function NavGroupLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="px-2.5 pb-1 text-[11px] font-medium tracking-[0.05em] text-sidebar-foreground/50 uppercase">
+      {children}
+    </span>
+  )
+}
+
+export function SidebarNav({
+  isAdmin = true,
+  counts = {},
+}: {
+  isAdmin?: boolean
+  /** Cifras junto a un módulo, por ruta (p. ej. períodos abiertos). */
+  counts?: Record<string, number>
+}) {
   const pathname = usePathname()
   const groups = visibleNavGroups(isAdmin)
 
   return (
-    <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-5">
+    <nav
+      aria-label="Principal"
+      className="flex flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-3 py-2"
+    >
       {groups.map((group) => (
-        <div key={group.label} className="flex flex-col gap-1">
-          <span className="px-2 pb-2 text-[10px] font-semibold tracking-[0.14em] text-sidebar-foreground/40 uppercase">
-            {group.label}
-          </span>
+        <div key={group.label} className="flex flex-col gap-0.5">
+          <NavGroupLabel>{group.label}</NavGroupLabel>
           {group.items.map((item) => {
-            const active =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href)
-            const Icon = item.icon
+            const active = isActiveHref(pathname, item.href)
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(
-                  "group flex h-10 items-center gap-3 rounded-xl px-2.5 text-sm transition-colors duration-150",
-                  active
-                    ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-[inset_0_0_0_1px_oklch(1_0_0/0.06)]"
-                    : "text-sidebar-foreground/58 hover:bg-sidebar-accent/55 hover:text-sidebar-foreground"
-                )}
+                aria-current={active ? "page" : undefined}
+                className={navItemClassName(active)}
               >
-                <span
-                  className={cn(
-                    "flex size-7 items-center justify-center rounded-lg transition-colors duration-150",
-                    active
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                      : "text-sidebar-foreground/48 group-hover:bg-white/5 group-hover:text-sidebar-foreground"
-                  )}
-                >
-                  <Icon className="size-[17px]" />
-                </span>
-                {item.label}
+                <NavItemContent
+                  item={item}
+                  active={active}
+                  count={counts[item.href]}
+                />
               </Link>
             )
           })}

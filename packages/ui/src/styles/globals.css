@@ -17,6 +17,7 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --color-sidebar-active: var(--sidebar-active);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -101,14 +102,17 @@
   --elevation-overlay:
     0 0 0 1px oklch(0 0 0 / 0.06), 0 8px 16px -4px oklch(0 0 0 / 0.08),
     0 24px 48px -12px oklch(0 0 0 / 0.2);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.93 0 0);
-  --sidebar-primary: oklch(0.715 0.13 166);
-  --sidebar-primary-foreground: oklch(0.18 0 0);
-  --sidebar-accent: oklch(1 0 0 / 8%);
-  --sidebar-accent-foreground: oklch(0.99 0 0);
-  --sidebar-border: oklch(1 0 0 / 9%);
-  --sidebar-ring: oklch(0.715 0.13 166);
+  /* Lienzo de la app: la barra lateral y el fondo sobre el que flota el panel
+     de contenido. Sigue al tema: gris claro en claro, casi negro en oscuro. */
+  --sidebar: oklch(0.962 0 0);
+  --sidebar-foreground: oklch(0.205 0 0);
+  --sidebar-primary: oklch(0.515 0.105 174);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0 0 0 / 5%);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-active: oklch(1 0 0);
+  --sidebar-border: oklch(0 0 0 / 8%);
+  --sidebar-ring: oklch(0.62 0.095 174);
 }
 
 .dark {
@@ -143,6 +147,7 @@
   --sidebar-accent-foreground: oklch(0.99 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.705 0.13 166);
+  --sidebar-active: oklch(1 0 0 / 8%);
   --hero: color-mix(in oklch, var(--primary) 50%, black);
   /* Sobre fondo oscuro las sombras de profundidad no se ven: queda el anillo. */
   --elevation-surface: 0 0 0 1px oklch(1 0 0 / 0.08);
