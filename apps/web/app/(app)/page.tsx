@@ -2,7 +2,9 @@ import Link from "next/link"
 import {
   RiArrowRightLine,
   RiBankCardLine,
+  RiBarChartLine,
   RiCalendar2Line,
+  RiFileList3Line,
   RiFlashlightLine,
   RiGroupLine,
   RiMoneyDollarCircleLine,
@@ -38,7 +40,7 @@ const shortDate = new Intl.DateTimeFormat("es-PE", {
 
 export default async function DashboardPage() {
   const session = await auth()
-  const { familyScope, isAdmin } = await getViewer()
+  const { familyScope, isAdmin, isFamily } = await getViewer()
 
   const [families, services, openPeriods, latestPeriod, recentPayments] =
     await Promise.all([
@@ -101,6 +103,62 @@ export default async function DashboardPage() {
       icon: RiCalendar2Line,
     },
   ]
+
+  // Períodos, familias y servicios son rutas de gestión (requireAdminPage):
+  // a los demás roles solo se les ofrece lo que pueden abrir.
+  const ownStatement = isFamily ? latestPeriod?.statements[0] : undefined
+  const nextSteps = isAdmin
+    ? [
+        {
+          href: latestPeriod ? `/periodos/${latestPeriod.id}` : "/periodos",
+          label: latestPeriod
+            ? `Revisar ${latestPeriod.label}`
+            : "Crear un período",
+          detail: latestPeriod
+            ? "Lecturas, cargos y pagos"
+            : "Comienza el control mensual",
+          icon: RiCalendar2Line,
+        },
+        {
+          href: "/pagos",
+          label: "Conciliar pagos",
+          detail: `${recentPayments.length} movimientos recientes`,
+          icon: RiMoneyDollarCircleLine,
+        },
+        {
+          href: "/familias",
+          label: "Validar participantes",
+          detail: `${families} familias activas`,
+          icon: RiGroupLine,
+        },
+      ]
+    : [
+        ...(latestPeriod && ownStatement
+          ? [
+              {
+                href: `/estado/${latestPeriod.id}/${ownStatement.familyId}`,
+                label: "Ver mi estado de cuenta",
+                detail:
+                  Number(ownStatement.balance) > 0
+                    ? `${latestPeriod.label} · saldo ${soles.format(Number(ownStatement.balance))}`
+                    : `${latestPeriod.label} · al día`,
+                icon: RiFileList3Line,
+              },
+            ]
+          : []),
+        {
+          href: "/pagos",
+          label: isFamily ? "Ver mis pagos" : "Ver pagos",
+          detail: `${recentPayments.length} movimientos recientes`,
+          icon: RiMoneyDollarCircleLine,
+        },
+        {
+          href: "/reportes",
+          label: "Ver reportes",
+          detail: "Consumo y saldos por período",
+          icon: RiBarChartLine,
+        },
+      ]
 
   return (
     <div className="flex flex-col gap-7 lg:gap-8">
@@ -202,32 +260,7 @@ export default async function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
-            {[
-              {
-                href: latestPeriod
-                  ? `/periodos/${latestPeriod.id}`
-                  : "/periodos",
-                label: latestPeriod
-                  ? `Revisar ${latestPeriod.label}`
-                  : "Crear un período",
-                detail: latestPeriod
-                  ? "Lecturas, cargos y pagos"
-                  : "Comienza el control mensual",
-                icon: RiCalendar2Line,
-              },
-              {
-                href: "/pagos",
-                label: "Conciliar pagos",
-                detail: `${recentPayments.length} movimientos recientes`,
-                icon: RiMoneyDollarCircleLine,
-              },
-              {
-                href: "/familias",
-                label: "Validar participantes",
-                detail: `${families} familias activas`,
-                icon: RiGroupLine,
-              },
-            ].map(({ icon: Icon, ...item }) => (
+            {nextSteps.map(({ icon: Icon, ...item }) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -263,7 +296,9 @@ export default async function DashboardPage() {
         ))}
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+      <section
+        className={cn("grid gap-4", isAdmin && "xl:grid-cols-[1.4fr_1fr]")}
+      >
         <Card>
           <CardHeader className="flex-row items-center justify-between">
             <div>
@@ -317,38 +352,46 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Accesos rápidos</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Las tareas más frecuentes, a un clic
-            </p>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-3">
-            {[
-              { href: "/periodos", label: "Períodos", icon: RiCalendar2Line },
-              { href: "/familias", label: "Familias", icon: RiGroupLine },
-              {
-                href: "/servicios",
-                label: "Servicios",
-                icon: RiFlashlightLine,
-              },
-              { href: "/pagos", label: "Pagos", icon: RiMoneyDollarCircleLine },
-            ].map((item) => {
-              const Icon = item.icon
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex flex-col gap-3 rounded-xl border p-3.5 text-sm font-medium transition-colors duration-150 hover:border-primary/20 hover:bg-primary/5"
-                >
-                  <Icon className="size-5 text-primary" />
-                  {item.label}
-                </Link>
-              )
-            })}
-          </CardContent>
-        </Card>
+        {/* Accesos de gestión: fuera del rol ADMIN solo quedaría Pagos, que
+            ya está en "Próximos pasos", así que la tarjeta no se muestra. */}
+        {isAdmin ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Accesos rápidos</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Las tareas más frecuentes, a un clic
+              </p>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3">
+              {[
+                { href: "/periodos", label: "Períodos", icon: RiCalendar2Line },
+                { href: "/familias", label: "Familias", icon: RiGroupLine },
+                {
+                  href: "/servicios",
+                  label: "Servicios",
+                  icon: RiFlashlightLine,
+                },
+                {
+                  href: "/pagos",
+                  label: "Pagos",
+                  icon: RiMoneyDollarCircleLine,
+                },
+              ].map((item) => {
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex flex-col gap-3 rounded-xl border p-3.5 text-sm font-medium transition-colors duration-150 hover:border-primary/20 hover:bg-primary/5"
+                  >
+                    <Icon className="size-5 text-primary" />
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </CardContent>
+          </Card>
+        ) : null}
       </section>
     </div>
   )
