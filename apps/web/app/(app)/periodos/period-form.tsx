@@ -95,7 +95,7 @@ export function PeriodForm({
         </div>
       </div>
 
-      <div className="rounded-xl border border-primary/10 bg-primary/6 p-3.5">
+      <div className="rounded-xl border border-primary/30 bg-primary/8 p-3.5">
         <p className="text-sm font-medium">Consejo</p>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
           Mantén el período abierto mientras registras consumos y pagos. Podrás

@@ -29,7 +29,7 @@ function EmptyState({
       {...props}
     >
       {Icon ? (
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/15 text-primary-text">
           <Icon className="size-6" />
         </div>
       ) : null}

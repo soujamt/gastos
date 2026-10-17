@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { RiMoneyDollarCircleLine } from "@remixicon/react"
 
-import { AvatarLabel } from "@workspace/ui/components/avatar"
+import { Avatar, AvatarLabel } from "@workspace/ui/components/avatar"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Table,
@@ -17,6 +17,7 @@ import { familyFilter, getViewer } from "@/lib/viewer"
 
 import { DeleteButton } from "../_components/delete-button"
 import { DataPanel } from "../_components/data-panel"
+import { MobileList, MobileListItem } from "../_components/mobile-list"
 import { PageHeader } from "../_components/page-header"
 import { deletePayment } from "../periodos/actions"
 
@@ -70,62 +71,90 @@ export default async function PagosPage() {
             },
           ]}
         >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-28">Fecha</TableHead>
-                {isAdmin ? <TableHead>Familia</TableHead> : null}
-                <TableHead>Período</TableHead>
-                <TableHead>Método</TableHead>
-                <TableHead>Nota</TableHead>
-                <TableHead className="text-right">Monto</TableHead>
-                {isAdmin ? <TableHead className="w-12" /> : null}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {payments.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="whitespace-nowrap text-muted-foreground tabular-nums">
-                    {fullDate.format(p.paidAt)}
-                  </TableCell>
-                  {isAdmin ? (
-                    <TableCell className="font-medium">
-                      <AvatarLabel name={p.family.name} />
-                    </TableCell>
-                  ) : null}
-                  <TableCell>
-                    {isAdmin ? (
-                      <Link
-                        href={`/periodos/${p.period.id}`}
-                        className="hover:text-primary hover:underline"
-                      >
-                        {p.period.label}
-                      </Link>
-                    ) : (
-                      p.period.label
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {paymentMethodLabels[p.method]}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {p.note ?? "—"}
-                  </TableCell>
-                  <TableCell className="text-right font-medium tabular-nums">
-                    {soles.format(Number(p.amount))}
-                  </TableCell>
-                  {isAdmin ? (
-                    <TableCell className="text-right">
-                      <form action={deletePayment}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <DeleteButton confirmText="El pago se quitará del historial y el saldo de la familia se recalculará." />
-                      </form>
-                    </TableCell>
-                  ) : null}
+          <MobileList>
+            {payments.map((p) => (
+              <MobileListItem
+                key={p.id}
+                leading={
+                  isAdmin ? <Avatar name={p.family.name} size="sm" /> : null
+                }
+                title={isAdmin ? p.family.name : p.period.label}
+                meta={
+                  isAdmin
+                    ? `${fullDate.format(p.paidAt)} · ${p.period.label}`
+                    : fullDate.format(p.paidAt)
+                }
+                value={soles.format(Number(p.amount))}
+                valueMeta={paymentMethodLabels[p.method]}
+                action={
+                  isAdmin ? (
+                    <form action={deletePayment}>
+                      <input type="hidden" name="id" value={p.id} />
+                      <DeleteButton confirmText="El pago se quitará del historial y el saldo de la familia se recalculará." />
+                    </form>
+                  ) : null
+                }
+              />
+            ))}
+          </MobileList>
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-28">Fecha</TableHead>
+                  {isAdmin ? <TableHead>Familia</TableHead> : null}
+                  <TableHead>Período</TableHead>
+                  <TableHead>Método</TableHead>
+                  <TableHead>Nota</TableHead>
+                  <TableHead className="text-right">Monto</TableHead>
+                  {isAdmin ? <TableHead className="w-12" /> : null}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {payments.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="whitespace-nowrap text-muted-foreground tabular-nums">
+                      {fullDate.format(p.paidAt)}
+                    </TableCell>
+                    {isAdmin ? (
+                      <TableCell className="font-medium">
+                        <AvatarLabel name={p.family.name} />
+                      </TableCell>
+                    ) : null}
+                    <TableCell>
+                      {isAdmin ? (
+                        <Link
+                          href={`/periodos/${p.period.id}`}
+                          className="hover:text-primary-text hover:underline"
+                        >
+                          {p.period.label}
+                        </Link>
+                      ) : (
+                        p.period.label
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {paymentMethodLabels[p.method]}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {p.note ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-right font-medium tabular-nums">
+                      {soles.format(Number(p.amount))}
+                    </TableCell>
+                    {isAdmin ? (
+                      <TableCell className="text-right">
+                        <form action={deletePayment}>
+                          <input type="hidden" name="id" value={p.id} />
+                          <DeleteButton confirmText="El pago se quitará del historial y el saldo de la familia se recalculará." />
+                        </form>
+                      </TableCell>
+                    ) : null}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </DataPanel>
       )}
     </div>

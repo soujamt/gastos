@@ -7,6 +7,7 @@ import { z } from "zod"
 
 import { auth } from "@/auth"
 import { requireAdmin } from "@/lib/auth-guards"
+import { flash } from "@/lib/flash"
 import { Role } from "@/lib/generated/prisma/enums"
 import { prisma } from "@/lib/prisma"
 
@@ -75,6 +76,7 @@ export async function createUser(
       passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS),
     },
   })
+  await flash("success", "Usuario creado", email)
   revalidatePath("/usuarios")
   redirect("/usuarios")
 }
@@ -112,6 +114,7 @@ export async function updateUser(
       ...(password ? { passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS) } : {}),
     },
   })
+  await flash("success", "Cambios guardados", email)
   revalidatePath("/usuarios")
   redirect("/usuarios")
 }
@@ -124,13 +127,24 @@ export async function deleteUser(formData: FormData) {
   const session = await auth()
   if (session?.user.id === String(id)) {
     // No permitir que un admin se elimine a sí mismo
+    await flash(
+      "error",
+      "No puedes eliminar tu propio usuario",
+      "Pide a otro administrador que lo haga."
+    )
     return
   }
 
   try {
     await prisma.user.delete({ where: { id } })
+    await flash("success", "Usuario eliminado")
   } catch {
     // El usuario tiene datos asociados
+    await flash(
+      "error",
+      "No se puede eliminar este usuario",
+      "Tiene datos asociados. Desactívalo en su lugar para quitarle el acceso."
+    )
   }
   revalidatePath("/usuarios")
 }

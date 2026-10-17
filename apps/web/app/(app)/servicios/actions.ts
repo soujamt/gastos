@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 
 import { requireAdmin } from "@/lib/auth-guards"
+import { flash } from "@/lib/flash"
 import { ServiceType } from "@/lib/generated/prisma/enums"
 import { prisma } from "@/lib/prisma"
 
@@ -46,6 +47,7 @@ export async function createService(
   if (exists) return { error: "Ya existe un servicio con ese nombre" }
 
   await prisma.service.create({ data: parsed.data })
+  await flash("success", "Servicio creado", parsed.data.name)
   revalidatePath("/servicios")
   redirect("/servicios")
 }
@@ -67,6 +69,7 @@ export async function updateService(
   if (clash) return { error: "Ya existe un servicio con ese nombre" }
 
   await prisma.service.update({ where: { id }, data: parsed.data })
+  await flash("success", "Cambios guardados", parsed.data.name)
   revalidatePath("/servicios")
   redirect("/servicios")
 }
@@ -78,8 +81,14 @@ export async function deleteService(formData: FormData) {
 
   try {
     await prisma.service.delete({ where: { id } })
+    await flash("success", "Servicio eliminado")
   } catch {
     // El servicio tiene datos asociados (recibos, lecturas o cargos)
+    await flash(
+      "error",
+      "No se puede eliminar este servicio",
+      "Tiene recibos, lecturas o cargos registrados. Desactívalo en su lugar para dejar de cobrarlo."
+    )
   }
   revalidatePath("/servicios")
 }

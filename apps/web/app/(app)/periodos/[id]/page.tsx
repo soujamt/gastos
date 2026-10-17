@@ -8,6 +8,7 @@ import {
   RiTimeLine,
 } from "@remixicon/react"
 
+import { Avatar } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button, buttonVariants } from "@workspace/ui/components/button"
 import {
@@ -35,6 +36,7 @@ import { requireAdminPage } from "@/lib/viewer"
 import { ChargeStatusDot } from "../../_components/charge-status"
 import { DeleteButton } from "../../_components/delete-button"
 import { FormDialog } from "../../_components/form-dialog"
+import { MobileList, MobileListItem } from "../../_components/mobile-list"
 import {
   addPayment,
   carryForwardDebt,
@@ -186,7 +188,7 @@ export default async function PeriodoWorkspacePage({
     <div className="flex flex-col gap-7">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-bold tracking-[0.13em] text-primary uppercase">
+          <span className="text-[11px] font-bold tracking-[0.13em] text-primary-text uppercase">
             Espacio del período
           </span>
           <div className="flex items-center gap-3">
@@ -269,7 +271,7 @@ export default async function PeriodoWorkspacePage({
         <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
           No hay un servicio medido activo. Crea uno de tipo “Medido (por
           consumo)” en{" "}
-          <Link href="/servicios" className="text-primary underline">
+          <Link href="/servicios" className="text-primary-text underline">
             Servicios
           </Link>
           .
@@ -277,7 +279,7 @@ export default async function PeriodoWorkspacePage({
       ) : families.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
           No hay familias activas. Agrégalas en{" "}
-          <Link href="/familias" className="text-primary underline">
+          <Link href="/familias" className="text-primary-text underline">
             Familias
           </Link>
           .
@@ -300,7 +302,7 @@ export default async function PeriodoWorkspacePage({
           {otherServices.length === 0 ? (
             <div className="rounded-2xl border border-dashed bg-card p-8 text-center text-sm text-muted-foreground">
               No hay servicios de monto fijo. Crea uno (por ejemplo, Agua) en{" "}
-              <Link href="/servicios" className="text-primary underline">
+              <Link href="/servicios" className="text-primary-text underline">
                 Servicios
               </Link>{" "}
               para poder cobrarlo aquí.
@@ -327,6 +329,36 @@ export default async function PeriodoWorkspacePage({
             </form>
           </div>
           <div className="overflow-hidden rounded-2xl border border-transparent bg-card shadow-surface">
+            <MobileList>
+              {statements.map((s) => {
+                const total = Number(s.chargesTotal) + Number(s.carriedDebt)
+                return (
+                  <MobileListItem
+                    key={s.id}
+                    leading={<Avatar name={s.family.name} size="sm" />}
+                    title={s.family.name}
+                    meta={`Pagó ${soles.format(Number(s.paymentsTotal))} de ${soles.format(total)}`}
+                    value={soles.format(Number(s.balance))}
+                    valueMeta={
+                      <ChargeStatusDot status={s.status} className="text-xs" />
+                    }
+                    action={
+                      <Link
+                        href={`/estado/${periodId}/${s.familyId}`}
+                        aria-label={`Estado de cuenta de ${s.family.name}`}
+                        className={cn(
+                          buttonVariants({ variant: "ghost", size: "icon-sm" }),
+                          "text-muted-foreground"
+                        )}
+                      >
+                        <RiFileTextLine />
+                      </Link>
+                    }
+                  />
+                )
+              })}
+            </MobileList>
+            <div className="hidden sm:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -386,6 +418,7 @@ export default async function PeriodoWorkspacePage({
                 })}
               </TableBody>
             </Table>
+            </div>
           </div>
           <p className="text-xs text-muted-foreground">
             El saldo se cobra redondeado a soles enteros; puede diferir unos
@@ -420,6 +453,24 @@ export default async function PeriodoWorkspacePage({
         <div className="flex flex-col gap-3">
           <h2 className="text-sm font-medium">Pagos del período</h2>
           <div className="overflow-hidden rounded-2xl border border-transparent bg-card shadow-surface">
+            <MobileList>
+              {payments.map((p) => (
+                <MobileListItem
+                  key={p.id}
+                  leading={<Avatar name={p.family.name} size="sm" />}
+                  title={p.family.name}
+                  meta={`${shortDate.format(p.paidAt)} · ${paymentMethodLabels[p.method]}`}
+                  value={soles.format(Number(p.amount))}
+                  action={
+                    <form action={deletePayment}>
+                      <input type="hidden" name="id" value={p.id} />
+                      <DeleteButton confirmText="El pago se quitará del historial y el saldo de la familia se recalculará." />
+                    </form>
+                  }
+                />
+              ))}
+            </MobileList>
+            <div className="hidden sm:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -459,6 +510,7 @@ export default async function PeriodoWorkspacePage({
                 ))}
               </TableBody>
             </Table>
+            </div>
           </div>
         </div>
       ) : null}

@@ -151,7 +151,7 @@ export default async function LecturasPage({
                       <TableCell>
                         <Link
                           href={`/periodos/${r.period.id}`}
-                          className="font-medium hover:text-primary hover:underline"
+                          className="font-medium hover:text-primary-text hover:underline"
                         >
                           {r.period.label}
                         </Link>

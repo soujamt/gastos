@@ -87,7 +87,7 @@ export default async function PeriodosPage() {
                   <TableCell className="font-medium">
                     <Link
                       href={`/periodos/${period.id}`}
-                      className="hover:text-primary hover:underline"
+                      className="hover:text-primary-text hover:underline"
                     >
                       {period.label}
                     </Link>

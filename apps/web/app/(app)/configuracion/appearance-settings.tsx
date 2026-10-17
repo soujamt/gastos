@@ -1,127 +1,103 @@
 "use client"
 
 import { useSyncExternalStore } from "react"
-import {
-  RiCheckLine,
-  RiComputerLine,
-  RiMoonLine,
-  RiSunLine,
-} from "@remixicon/react"
+import { RiCheckLine, RiMoonLine, RiSunLine } from "@remixicon/react"
 import { useTheme } from "next-themes"
 
 import { cn } from "@workspace/ui/lib/utils"
 
-const accents = [
-  { id: "teal", label: "Esmeralda", color: "bg-[#148d7c]" },
-  { id: "indigo", label: "Índigo", color: "bg-[#635bdb]" },
-  { id: "amber", label: "Ámbar", color: "bg-[#b87312]" },
-  { id: "rose", label: "Coral", color: "bg-[#c84f62]" },
+/**
+ * Cada vista previa es una miniatura de la app en ese modo: lienzo, barra
+ * lateral, panel y el verde de la marca. Usa valores fijos porque debe verse
+ * en su propio modo aunque la página esté en el otro.
+ */
+const modes = [
+  {
+    id: "light",
+    label: "Claro",
+    icon: RiSunLine,
+    canvas: "bg-[oklch(0.962_0_0)]",
+    panel: "bg-white",
+    line: "bg-[oklch(0.88_0_0)]",
+  },
+  {
+    id: "dark",
+    label: "Oscuro",
+    icon: RiMoonLine,
+    canvas: "bg-[oklch(0.145_0_0)]",
+    panel: "bg-[oklch(0.2_0_0)]",
+    line: "bg-[oklch(0.32_0_0)]",
+  },
 ] as const
 
-const themes = [
-  { id: "light", label: "Claro", icon: RiSunLine },
-  { id: "dark", label: "Oscuro", icon: RiMoonLine },
-  { id: "system", label: "Sistema", icon: RiComputerLine },
-] as const
-
-const accentEvent = "gastosfam-accent-change"
-
-function readAccent() {
-  return window.localStorage.getItem("gastosfam-accent") ?? "teal"
-}
-
-function readServerAccent() {
-  return "teal"
-}
-
-function subscribeToAccent(callback: () => void) {
-  window.addEventListener(accentEvent, callback)
-  return () => window.removeEventListener(accentEvent, callback)
-}
-
-function applyAccent(nextAccent: string) {
-  window.localStorage.setItem("gastosfam-accent", nextAccent)
-  if (nextAccent === "teal") {
-    document.documentElement.removeAttribute("data-accent")
-  } else {
-    document.documentElement.setAttribute("data-accent", nextAccent)
-  }
-  window.dispatchEvent(new Event(accentEvent))
+// El tema solo se conoce en el cliente: hasta montar, nada aparece elegido.
+const noopSubscribe = () => () => {}
+function useMounted() {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false
+  )
 }
 
 export function AppearanceSettings() {
-  const accent = useSyncExternalStore(
-    subscribeToAccent,
-    readAccent,
-    readServerAccent
-  )
-  const { theme, setTheme } = useTheme()
-
-  function updateAccent(nextAccent: string) {
-    applyAccent(nextAccent)
-  }
+  const { resolvedTheme, setTheme } = useTheme()
+  const mounted = useMounted()
+  const current = mounted ? resolvedTheme : undefined
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
-      <div>
-        <h3 className="text-sm font-semibold">Color de la marca</h3>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Elige el acento para botones, indicadores y elementos destacados.
-        </p>
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          {accents.map((option) => (
+    <div className="max-w-xl">
+      <h3 className="text-sm font-semibold">Modo de visualización</h3>
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+        El color de la marca es el mismo en ambos modos.
+      </p>
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        {modes.map((mode) => {
+          const Icon = mode.icon
+          const selected = current === mode.id
+          return (
             <button
-              key={option.id}
+              key={mode.id}
               type="button"
-              onClick={() => updateAccent(option.id)}
+              aria-pressed={selected}
+              onClick={() => setTheme(mode.id)}
               className={cn(
-                "flex items-center gap-3 rounded-xl border p-3 text-left text-sm font-medium transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted",
-                accent === option.id &&
-                  "border-primary bg-primary/5 ring-2 ring-primary/10"
+                "flex flex-col gap-3 rounded-xl border p-2.5 text-left text-sm font-medium transition-[background-color,border-color,box-shadow] duration-150 outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring",
+                selected && "border-primary bg-primary/10 ring-1 ring-primary"
               )}
             >
               <span
+                aria-hidden="true"
                 className={cn(
-                  "flex size-8 items-center justify-center rounded-full",
-                  option.color
+                  "flex h-20 gap-1.5 rounded-lg p-1.5",
+                  mode.canvas
                 )}
               >
-                {accent === option.id ? (
-                  <RiCheckLine className="size-4 text-white" />
+                <span className="flex w-1/4 flex-col gap-1 pt-1">
+                  <span className={cn("h-1.5 w-3/4 rounded-full", mode.line)} />
+                  <span className="h-1.5 w-full rounded-full bg-[#89F051]" />
+                  <span className={cn("h-1.5 w-2/3 rounded-full", mode.line)} />
+                </span>
+                <span
+                  className={cn(
+                    "flex flex-1 flex-col gap-1.5 rounded-md p-2",
+                    mode.panel
+                  )}
+                >
+                  <span className={cn("h-1.5 w-1/2 rounded-full", mode.line)} />
+                  <span className="mt-auto h-4 w-1/3 rounded-sm bg-[#89F051]" />
+                </span>
+              </span>
+              <span className="flex items-center gap-2 px-0.5">
+                <Icon className="size-4" />
+                {mode.label}
+                {selected ? (
+                  <RiCheckLine className="ml-auto size-4 text-primary-text" />
                 ) : null}
               </span>
-              {option.label}
             </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-sm font-semibold">Modo de visualización</h3>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Usa un tema fijo o sigue automáticamente la preferencia del
-          dispositivo.
-        </p>
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          {themes.map((option) => {
-            const Icon = option.icon
-            return (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => setTheme(option.id)}
-                className={cn(
-                  "flex flex-col items-center gap-2 rounded-xl border p-3 text-xs font-medium transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted",
-                  theme === option.id &&
-                    "border-primary bg-primary/5 ring-2 ring-primary/10"
-                )}
-              >
-                <Icon className="size-5" />
-                {option.label}
-              </button>
-            )
-          })}
-        </div>
+          )
+        })}
       </div>
     </div>
   )

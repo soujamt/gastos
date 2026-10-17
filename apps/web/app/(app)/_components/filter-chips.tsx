@@ -35,7 +35,7 @@ export function FilterChips({
           className={cn(
             "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
             chip.active
-              ? "border-primary/30 bg-primary/10 text-primary"
+              ? "border-primary/60 bg-primary/15 text-primary-text"
               : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
           )}
         >

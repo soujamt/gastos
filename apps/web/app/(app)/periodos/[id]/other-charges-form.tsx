@@ -95,7 +95,7 @@ export function OtherChargesForm({
       className="flex flex-col gap-5 rounded-2xl border border-transparent bg-card p-5 shadow-surface sm:p-6"
     >
       {equal.length > 0 ? (
-        <div className="flex flex-col gap-3 rounded-xl border border-primary/10 bg-primary/[0.04] p-4">
+        <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/[0.06] p-4">
           <div>
             <p className="text-sm font-medium">Total a dividir en partes iguales</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
@@ -266,12 +266,6 @@ export function OtherChargesForm({
           {state.error}
         </p>
       ) : null}
-      {state?.ok ? (
-        <p className="text-sm text-emerald-600 dark:text-emerald-400">
-          Cargos y deuda actualizados.
-        </p>
-      ) : null}
-
       <div>
         <Button type="submit" disabled={pending}>
           {pending ? "Guardando…" : "Guardar cargos y deuda"}

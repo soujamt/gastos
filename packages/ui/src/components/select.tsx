@@ -124,9 +124,9 @@ function Select({
         data-slot="select"
         className={cn(
           "group flex h-10 w-full min-w-0 items-center justify-between gap-3 rounded-lg border border-input bg-card px-3.5 text-left text-sm shadow-xs transition-[border-color,box-shadow,background-color] outline-none",
-          "hover:border-primary/30 hover:bg-accent/35",
-          "focus-visible:border-primary/60 focus-visible:ring-[3px] focus-visible:ring-primary/15",
-          "data-popup-open:border-primary/45 data-popup-open:ring-[3px] data-popup-open:ring-primary/10",
+          "hover:border-ring/50 hover:bg-accent/35",
+          "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/25",
+          "data-popup-open:border-ring data-popup-open:ring-[3px] data-popup-open:ring-ring/20",
           "aria-invalid:border-destructive aria-invalid:ring-destructive/20",
           "dark:bg-input/30 data-disabled:pointer-events-none data-disabled:cursor-not-allowed data-disabled:opacity-50",
           className
@@ -161,7 +161,7 @@ function Select({
                   label={option.textLabel}
                   className="grid min-h-10 cursor-default grid-cols-[1.25rem_1fr] items-center gap-2 rounded-lg px-2.5 py-2 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-40"
                 >
-                  <SelectPrimitive.ItemIndicator className="col-start-1 flex size-5 items-center justify-center text-primary">
+                  <SelectPrimitive.ItemIndicator className="col-start-1 flex size-5 items-center justify-center text-primary-text">
                     <RiCheckLine className="size-4" />
                   </SelectPrimitive.ItemIndicator>
                   <SelectPrimitive.ItemText className="col-start-2 truncate">

@@ -3,7 +3,7 @@ import * as React from "react"
 import { cn } from "@workspace/ui/lib/utils"
 
 const tints = [
-  "bg-primary/12 text-primary",
+  "bg-primary/12 text-primary-text",
   "bg-blue-500/12 text-blue-700 dark:text-blue-400",
   "bg-amber-500/12 text-amber-700 dark:text-amber-400",
   "bg-emerald-500/12 text-emerald-700 dark:text-emerald-400",
