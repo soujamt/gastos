@@ -10,8 +10,16 @@ const tones = {
 } as const
 
 /** Estado de cobro de una familia. Antes estaba duplicado en cada página. */
-export function ChargeStatusDot({ status }: { status: ChargeStatus }) {
+export function ChargeStatusDot({
+  status,
+  className,
+}: {
+  status: ChargeStatus
+  className?: string
+}) {
   return (
-    <StatusDot tone={tones[status]}>{chargeStatusLabels[status]}</StatusDot>
+    <StatusDot tone={tones[status]} className={className}>
+      {chargeStatusLabels[status]}
+    </StatusDot>
   )
 }
