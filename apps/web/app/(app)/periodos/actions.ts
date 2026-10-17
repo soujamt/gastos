@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 
 import { requireAdmin } from "@/lib/auth-guards"
+import { flash } from "@/lib/flash"
 import {
   ChargeStatus,
   PaymentMethod,
@@ -60,6 +61,7 @@ export async function createPeriod(
   await prisma.period.create({
     data: { year, month, days, status, label: labelFor(year, month) },
   })
+  await flash("success", "Período creado", labelFor(year, month))
   revalidatePath("/periodos")
   redirect("/periodos")
 }
@@ -85,6 +87,7 @@ export async function updatePeriod(
     where: { id },
     data: { year, month, days, status, label: labelFor(year, month) },
   })
+  await flash("success", "Cambios guardados", labelFor(year, month))
   revalidatePath("/periodos")
   redirect("/periodos")
 }
@@ -96,8 +99,14 @@ export async function deletePeriod(formData: FormData) {
 
   try {
     await prisma.period.delete({ where: { id } })
+    await flash("success", "Período eliminado")
   } catch {
     // El período tiene datos asociados
+    await flash(
+      "error",
+      "No se puede eliminar este período",
+      "Tiene recibos, lecturas, cargos o pagos registrados. Ciérralo en su lugar."
+    )
   }
   revalidatePath("/periodos")
 }
@@ -116,6 +125,13 @@ export async function togglePeriodStatus(periodId: number) {
           : PeriodStatus.OPEN,
     },
   })
+  await flash(
+    "success",
+    period.status === PeriodStatus.OPEN
+      ? "Período cerrado"
+      : "Período reabierto",
+    period.label
+  )
   revalidatePath(`/periodos/${periodId}`)
   revalidatePath("/periodos")
 }
@@ -200,7 +216,13 @@ export async function saveElectricity(
   await prisma.$transaction(async (tx) => {
     await tx.bill.upsert({
       where: { periodId_serviceId: { periodId, serviceId } },
-      update: { totalAmount, totalKwh: billKwh, meterPrev, meterCurr, issueDate },
+      update: {
+        totalAmount,
+        totalKwh: billKwh,
+        meterPrev,
+        meterCurr,
+        issueDate,
+      },
       create: {
         periodId,
         serviceId,
@@ -257,6 +279,11 @@ export async function saveElectricity(
   })
 
   await recomputeAllStatements(periodId)
+  await flash(
+    "success",
+    "Cargos de luz guardados",
+    "Los saldos de cada familia se actualizaron."
+  )
 
   revalidatePath(`/periodos/${periodId}`)
   return { ok: true }
@@ -274,7 +301,10 @@ export async function saveOtherCharges(
   await requireAdmin()
 
   const [families, services] = await Promise.all([
-    prisma.family.findMany({ where: { active: true }, select: { id: true, name: true } }),
+    prisma.family.findMany({
+      where: { active: true },
+      select: { id: true, name: true },
+    }),
     prisma.service.findMany({
       where: { active: true, type: { not: ServiceType.METERED } },
       select: { id: true, name: true, type: true },
@@ -294,7 +324,9 @@ export async function saveOtherCharges(
     const rawDebt = formData.get(`debt_${fam.id}`)
     const carriedDebt = rawDebt ? Number(rawDebt) : 0
     if (!Number.isFinite(carriedDebt)) {
-      return { error: `La deuda anterior de ${fam.name} no es un número válido` }
+      return {
+        error: `La deuda anterior de ${fam.name} no es un número válido`,
+      }
     }
     debts.push({ familyId: fam.id, carriedDebt })
 
@@ -378,6 +410,11 @@ export async function saveOtherCharges(
   }
 
   await recomputeAllStatements(periodId)
+  await flash(
+    "success",
+    "Cargos y deuda guardados",
+    "Los saldos de cada familia se actualizaron."
+  )
   revalidatePath(`/periodos/${periodId}`)
   return { ok: true }
 }
@@ -398,9 +435,7 @@ export async function addPayment(
   if (!Number.isInteger(familyId)) return { error: "Selecciona una familia" }
   if (!(amount > 0)) return { error: "El monto debe ser mayor a 0" }
 
-  const method = (
-    Object.values(PaymentMethod) as string[]
-  ).includes(methodRaw)
+  const method = (Object.values(PaymentMethod) as string[]).includes(methodRaw)
     ? (methodRaw as PaymentMethod)
     : PaymentMethod.CASH
   const paidAt = paidAtRaw ? new Date(String(paidAtRaw)) : new Date()
@@ -409,6 +444,14 @@ export async function addPayment(
     data: { periodId, familyId, amount, method, paidAt, note },
   })
   await recomputeStatement(periodId, familyId)
+  await flash(
+    "success",
+    "Pago registrado",
+    new Intl.NumberFormat("es-PE", {
+      style: "currency",
+      currency: "PEN",
+    }).format(amount)
+  )
 
   revalidatePath(`/periodos/${periodId}`)
   revalidatePath("/pagos")
@@ -425,6 +468,11 @@ export async function deletePayment(formData: FormData) {
 
   await prisma.payment.delete({ where: { id } })
   await recomputeStatement(payment.periodId, payment.familyId)
+  await flash(
+    "success",
+    "Pago eliminado",
+    "El saldo de la familia se recalculó."
+  )
 
   revalidatePath(`/periodos/${payment.periodId}`)
   revalidatePath("/pagos")
@@ -445,7 +493,14 @@ export async function carryForwardDebt(periodId: number) {
     },
     orderBy: [{ year: "asc" }, { month: "asc" }],
   })
-  if (!next) return
+  if (!next) {
+    await flash(
+      "error",
+      "No hay un período siguiente",
+      `Crea el período del mes posterior a ${period.label} y vuelve a intentarlo.`
+    )
+    return
+  }
 
   const statements = await prisma.statement.findMany({ where: { periodId } })
   for (const st of statements) {
@@ -462,6 +517,11 @@ export async function carryForwardDebt(periodId: number) {
     })
     await recomputeStatement(next.id, st.familyId)
   }
+  await flash(
+    "success",
+    `Saldo arrastrado a ${next.label}`,
+    "Cada familia empieza ese mes con su saldo pendiente como deuda."
+  )
 
   revalidatePath(`/periodos/${next.id}`)
   revalidatePath("/periodos")

@@ -270,11 +270,6 @@ export function ElectricityForm({
           {state.error}
         </p>
       ) : null}
-      {state?.ok ? (
-        <p className="rounded-xl bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-700 dark:text-emerald-400">
-          Cargos guardados correctamente.
-        </p>
-      ) : null}
 
       <div className="flex justify-end border-t pt-5">
         <Button type="submit" disabled={pending}>

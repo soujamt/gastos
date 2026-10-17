@@ -266,12 +266,6 @@ export function OtherChargesForm({
           {state.error}
         </p>
       ) : null}
-      {state?.ok ? (
-        <p className="text-sm text-emerald-600 dark:text-emerald-400">
-          Cargos y deuda actualizados.
-        </p>
-      ) : null}
-
       <div>
         <Button type="submit" disabled={pending}>
           {pending ? "Guardando…" : "Guardar cargos y deuda"}

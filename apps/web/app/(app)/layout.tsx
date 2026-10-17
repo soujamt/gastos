@@ -4,12 +4,15 @@ import { RiLogoutBoxRLine } from "@remixicon/react"
 import { Avatar } from "@workspace/ui/components/avatar"
 
 import { auth } from "@/auth"
+import { Toaster } from "@workspace/ui/components/sonner"
 import { BrandLogo } from "@/components/brand-logo"
 import { logout } from "@/app/(auth)/actions"
+import { readFlash } from "@/lib/flash"
 import { roleLabels } from "@/lib/labels"
 
 import { SidebarNav } from "./_components/sidebar-nav"
 import { CurrentSection } from "./_components/current-section"
+import { FlashToast } from "./_components/flash-toast"
 import { MobileNavigation } from "./_components/mobile-navigation"
 import { ThemeToggle } from "./_components/theme-toggle"
 import { UserMenu } from "./_components/user-menu"
@@ -26,6 +29,7 @@ export default async function AppLayout({
   const isAdmin = session.user.role === "ADMIN"
   const email = session.user.email ?? ""
   const displayName = session.user.name ?? email.split("@")[0] ?? "Usuario"
+  const flashMessage = await readFlash()
 
   return (
     <div className="flex min-h-svh">
@@ -99,6 +103,8 @@ export default async function AppLayout({
           {children}
         </main>
       </div>
+      <Toaster />
+      <FlashToast flash={flashMessage} />
     </div>
   )
 }

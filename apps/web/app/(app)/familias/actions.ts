@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 
 import { requireAdmin } from "@/lib/auth-guards"
+import { flash } from "@/lib/flash"
 import { prisma } from "@/lib/prisma"
 
 export type FormState = { error?: string } | undefined
@@ -41,6 +42,7 @@ export async function createFamily(
   if (exists) return { error: "Ya existe una familia con ese nombre" }
 
   await prisma.family.create({ data: parsed.data })
+  await flash("success", "Familia creada", parsed.data.name)
   revalidatePath("/familias")
   redirect("/familias")
 }
@@ -62,6 +64,7 @@ export async function updateFamily(
   if (clash) return { error: "Ya existe una familia con ese nombre" }
 
   await prisma.family.update({ where: { id }, data: parsed.data })
+  await flash("success", "Cambios guardados", parsed.data.name)
   revalidatePath("/familias")
   redirect("/familias")
 }
@@ -73,8 +76,14 @@ export async function deleteFamily(formData: FormData) {
 
   try {
     await prisma.family.delete({ where: { id } })
+    await flash("success", "Familia eliminada")
   } catch {
     // La familia tiene datos asociados (lecturas, cargos o pagos)
+    await flash(
+      "error",
+      "No se puede eliminar esta familia",
+      "Tiene lecturas, cargos o pagos registrados. Desactívala en su lugar para dejarla fuera del reparto."
+    )
   }
   revalidatePath("/familias")
 }
