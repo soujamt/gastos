@@ -14,6 +14,7 @@ import {
   AlertDialogTrigger,
 } from "@workspace/ui/components/alert-dialog"
 import { Button, buttonVariants } from "@workspace/ui/components/button"
+import { cn } from "@workspace/ui/lib/utils"
 
 export function DeleteButton({
   confirmText = "Esta acción no se puede deshacer y el registro dejará de estar disponible.",
@@ -32,9 +33,12 @@ export function DeleteButton({
         ref={triggerRef}
         type="button"
         aria-label="Eliminar"
-        className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "icon-sm" }),
+          "text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+        )}
       >
-        <RiDeleteBinLine className="text-muted-foreground hover:text-destructive" />
+        <RiDeleteBinLine />
       </AlertDialogTrigger>
       <AlertDialogPortal>
         <AlertDialogBackdrop />

@@ -34,19 +34,19 @@ export default async function LoginPage() {
         </div>
 
         <div className="relative max-w-xl">
-          <p className="text-xs font-bold tracking-[0.14em] text-sidebar-primary uppercase">
+          <p className="animate-enter text-xs font-bold tracking-[0.14em] text-sidebar-primary uppercase">
             Claridad para todos
           </p>
-          <h1 className="mt-4 text-4xl leading-[1.08] font-semibold tracking-[-0.045em] xl:text-5xl">
+          <h1 className="mt-4 animate-enter text-4xl leading-[1.08] font-semibold tracking-[-0.045em] xl:text-5xl">
             Cada consumo claro.
             <br />
             Cada pago en orden.
           </h1>
-          <p className="mt-6 max-w-lg text-base leading-7 text-sidebar-foreground/60">
+          <p className="mt-6 max-w-lg animate-enter text-base leading-7 text-sidebar-foreground/60 [animation-delay:100ms]">
             Centraliza recibos, lecturas y abonos en un solo lugar para que el
             reparto familiar sea transparente y fácil de gestionar.
           </p>
-          <div className="mt-10 grid grid-cols-2 gap-4">
+          <div className="mt-10 grid animate-enter grid-cols-2 gap-4 [animation-delay:200ms]">
             <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-4">
               <RiBarChartGroupedLine className="size-5 text-sidebar-primary" />
               <p className="mt-3 text-sm font-medium">Cálculos confiables</p>

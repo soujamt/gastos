@@ -39,7 +39,7 @@ export default async function ConfiguracionPage() {
         </CardContent>
       </Card>
 
-      <div className="flex items-start gap-3 rounded-2xl border bg-card p-5 text-sm shadow-sm">
+      <div className="flex items-start gap-3 rounded-2xl border border-transparent bg-card p-5 text-sm shadow-surface">
         <RiInformationLine className="mt-0.5 size-5 shrink-0 text-primary" />
         <div>
           <p className="font-medium">Una experiencia consistente</p>

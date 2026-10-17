@@ -109,15 +109,15 @@ export function SidebarNav({ isAdmin = true }: { isAdmin?: boolean }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group flex h-11 items-center gap-3 rounded-xl px-3 text-sm transition-all duration-200",
+                  "group flex h-10 items-center gap-3 rounded-xl px-2.5 text-sm transition-colors duration-150",
                   active
-                    ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.055),0_8px_20px_rgba(0,0,0,0.08)]"
+                    ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground shadow-[inset_0_0_0_1px_oklch(1_0_0/0.06)]"
                     : "text-sidebar-foreground/58 hover:bg-sidebar-accent/55 hover:text-sidebar-foreground"
                 )}
               >
                 <span
                   className={cn(
-                    "flex size-7 items-center justify-center rounded-lg transition-all",
+                    "flex size-7 items-center justify-center rounded-lg transition-colors duration-150",
                     active
                       ? "bg-sidebar-primary text-sidebar-primary-foreground"
                       : "text-sidebar-foreground/48 group-hover:bg-white/5 group-hover:text-sidebar-foreground"

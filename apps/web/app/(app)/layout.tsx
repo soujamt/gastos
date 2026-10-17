@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation"
-import { RiWallet3Line } from "@remixicon/react"
+import { RiLogoutBoxRLine, RiWallet3Line } from "@remixicon/react"
+
+import { Avatar } from "@workspace/ui/components/avatar"
 
 import { auth } from "@/auth"
+import { logout } from "@/app/(auth)/actions"
+import { roleLabels } from "@/lib/labels"
 
 import { SidebarNav } from "./_components/sidebar-nav"
 import { CurrentSection } from "./_components/current-section"
@@ -19,15 +23,17 @@ export default async function AppLayout({
     redirect("/login")
   }
   const isAdmin = session.user.role === "ADMIN"
+  const email = session.user.email ?? ""
+  const displayName = session.user.name ?? email.split("@")[0] ?? "Usuario"
 
   return (
     <div className="flex min-h-svh">
-      <aside className="sticky top-0 hidden h-svh w-[272px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
-        <div className="flex h-20 items-center gap-3 border-b border-sidebar-border px-5">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-black/15">
-            <RiWallet3Line className="size-5" />
+      <aside className="sticky top-0 hidden h-svh w-[264px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+        <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
+          <div className="flex size-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground">
+            <RiWallet3Line className="size-[18px]" />
           </div>
-          <div>
+          <div className="leading-tight">
             <div className="font-semibold tracking-[-0.02em] text-sidebar-foreground">
               GastosFam
             </div>
@@ -37,21 +43,40 @@ export default async function AppLayout({
           </div>
         </div>
         <SidebarNav isAdmin={isAdmin} />
-        <div className="m-4 mt-auto rounded-2xl border border-sidebar-border bg-white/[0.035] p-4">
-          <p className="text-[10px] font-semibold tracking-[0.12em] text-sidebar-foreground/45 uppercase">
-            Estado del sistema
-          </p>
-          <div className="mt-2 flex items-center gap-2 text-xs text-sidebar-foreground/75">
-            <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.1)]" />
-            Todo al día
+        {/* Quién está dentro y la salida: antes aquí había un "Todo al día"
+            fijo, que decía lo mismo aunque hubiera saldos pendientes. */}
+        <div className="border-t border-sidebar-border p-3">
+          <div className="flex items-center gap-3 px-2 py-1.5">
+            <Avatar
+              name={displayName}
+              className="bg-sidebar-accent text-sidebar-foreground"
+            />
+            <div className="min-w-0 flex-1 leading-tight" title={email}>
+              <div className="truncate text-sm font-medium text-sidebar-foreground">
+                {displayName}
+              </div>
+              <div className="truncate text-xs text-sidebar-foreground/50">
+                {roleLabels[session.user.role]}
+              </div>
+            </div>
+            <form action={logout}>
+              <button
+                type="submit"
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+                className="flex size-9 items-center justify-center rounded-lg text-sidebar-foreground/55 transition-colors outline-none hover:bg-sidebar-accent hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+              >
+                <RiLogoutBoxRLine className="size-[18px]" />
+              </button>
+            </form>
           </div>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex h-20 items-center gap-3 border-b border-border/70 bg-background/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border/70 bg-background/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
           <MobileNavigation isAdmin={isAdmin} />
-          <div className="md:hidden">
+          <div className="leading-tight md:hidden">
             <div className="text-sm font-semibold tracking-[-0.02em]">
               GastosFam
             </div>
@@ -62,10 +87,10 @@ export default async function AppLayout({
           <CurrentSection />
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle />
-            <UserMenu
-              email={session.user.email ?? ""}
-              role={session.user.role}
-            />
+            {/* En escritorio la identidad vive al pie de la barra lateral. */}
+            <div className="md:hidden">
+              <UserMenu email={email} role={session.user.role} />
+            </div>
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1320px] flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">

@@ -1,6 +1,7 @@
 import { RiFlashlightLine, RiPulseLine } from "@remixicon/react"
 
 import { Badge } from "@workspace/ui/components/badge"
+import { EmptyState } from "@workspace/ui/components/empty-state"
 import { StatusDot } from "@workspace/ui/components/status-dot"
 import {
   Table,
@@ -49,16 +50,11 @@ export default async function ServiciosPage() {
       />
 
       {services.length === 0 ? (
-        <div className="flex flex-col items-center rounded-2xl border border-dashed bg-card p-12 text-center shadow-sm">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <RiFlashlightLine className="size-6" />
-          </div>
-          <h2 className="mt-4 font-semibold">Agrega tu primer servicio</h2>
-          <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">
-            Define si se repartirá por consumo, en partes iguales o con un monto
-            fijo.
-          </p>
-        </div>
+        <EmptyState
+          icon={RiFlashlightLine}
+          title="Agrega tu primer servicio"
+          description="Define si se repartirá por consumo, en partes iguales o con un monto fijo."
+        />
       ) : (
         <DataPanel
           meta={[

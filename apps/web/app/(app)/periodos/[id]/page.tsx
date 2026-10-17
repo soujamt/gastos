@@ -326,7 +326,7 @@ export default async function PeriodoWorkspacePage({
               </Button>
             </form>
           </div>
-          <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-transparent bg-card shadow-surface">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -395,7 +395,7 @@ export default async function PeriodoWorkspacePage({
       ) : null}
 
       {families.length > 0 ? (
-        <div className="flex flex-col gap-4 rounded-2xl border bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="flex flex-col gap-4 rounded-2xl border border-transparent bg-card p-5 shadow-surface sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div>
             <h2 className="font-semibold">¿Recibiste un abono?</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -419,7 +419,7 @@ export default async function PeriodoWorkspacePage({
       {payments.length > 0 ? (
         <div className="flex flex-col gap-3">
           <h2 className="text-sm font-medium">Pagos del período</h2>
-          <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-transparent bg-card shadow-surface">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -434,7 +434,7 @@ export default async function PeriodoWorkspacePage({
               <TableBody>
                 {payments.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="whitespace-nowrap text-muted-foreground tabular-nums">
                       {shortDate.format(p.paidAt)}
                     </TableCell>
                     <TableCell className="font-medium">

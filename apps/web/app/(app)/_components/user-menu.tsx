@@ -2,30 +2,23 @@
 
 import { RiLogoutBoxRLine } from "@remixicon/react"
 
+import { Avatar } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
 
 import { logout } from "@/app/(auth)/actions"
+import type { Role } from "@/lib/generated/prisma/enums"
+import { roleLabels } from "@/lib/labels"
 
-const roleLabels: Record<string, string> = {
-  ADMIN: "Administrador",
-  FAMILY: "Familia",
-  VIEWER: "Solo lectura",
-}
-
-export function UserMenu({ email, role }: { email: string; role: string }) {
-  const initials = email.slice(0, 2).toUpperCase()
-
+export function UserMenu({ email, role }: { email: string; role: Role }) {
   return (
     <div className="flex items-center gap-2">
       <div className="hidden text-right sm:block">
         <div className="text-xs leading-tight font-medium">{email}</div>
-        <div className="text-muted-foreground text-[11px] leading-tight">
-          {roleLabels[role] ?? role}
+        <div className="text-[11px] leading-tight text-muted-foreground">
+          {roleLabels[role]}
         </div>
       </div>
-      <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-full text-xs font-medium">
-        {initials}
-      </div>
+      <Avatar name={email.split("@")[0] ?? email} size="sm" />
       <form action={logout}>
         <Button
           type="submit"

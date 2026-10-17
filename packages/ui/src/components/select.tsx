@@ -148,11 +148,11 @@ function Select({
           alignItemWithTrigger={false}
           className="z-[90] outline-none"
         >
-          <SelectPrimitive.Popup className="min-w-[var(--anchor-width)] origin-[var(--transform-origin)] overflow-hidden rounded-xl border border-border/90 bg-popover text-popover-foreground shadow-[0_18px_50px_rgba(10,35,30,0.16)] transition-[transform,opacity] duration-150 outline-none data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-starting-style:scale-[0.98] data-starting-style:opacity-0">
+          <SelectPrimitive.Popup className="min-w-[var(--anchor-width)] origin-[var(--transform-origin)] overflow-hidden rounded-xl border border-transparent bg-popover text-popover-foreground shadow-overlay transition-opacity duration-150 ease-out outline-none data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-ending-style:duration-100 data-starting-style:scale-[0.98] data-starting-style:opacity-0 motion-safe:transition-[opacity,scale]">
             <SelectPrimitive.ScrollUpArrow className="sticky top-0 z-10 flex h-7 w-full items-center justify-center border-b bg-popover/95 text-muted-foreground backdrop-blur">
               <RiArrowUpSLine className="size-4" />
             </SelectPrimitive.ScrollUpArrow>
-            <SelectPrimitive.List className="max-h-[min(var(--available-height),18rem)] scroll-py-1 overflow-y-auto p-1.5">
+            <SelectPrimitive.List className="max-h-[min(var(--available-height),18rem)] scroll-py-1 overflow-y-auto overscroll-contain p-1.5">
               {options.map((option) => (
                 <SelectPrimitive.Item
                   key={`${String(option.value)}-${option.textLabel}`}

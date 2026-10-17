@@ -49,13 +49,13 @@ function Stat({
     <div
       data-slot="stat"
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border bg-card p-5 shadow-sm",
+        "flex flex-col gap-3 rounded-2xl border border-transparent bg-card p-5 shadow-surface",
         className
       )}
       {...props}
     >
       <div className="flex items-start justify-between gap-3">
-        <span className="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+        <span className="text-sm font-medium text-muted-foreground">
           {label}
         </span>
         {Icon ? (

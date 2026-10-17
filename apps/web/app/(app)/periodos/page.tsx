@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { RiCalendar2Line, RiPulseLine } from "@remixicon/react"
 
+import { EmptyState } from "@workspace/ui/components/empty-state"
 import { StatusDot } from "@workspace/ui/components/status-dot"
 import {
   Table,
@@ -52,15 +53,11 @@ export default async function PeriodosPage() {
       />
 
       {periods.length === 0 ? (
-        <div className="flex flex-col items-center rounded-2xl border border-dashed bg-card p-12 text-center shadow-sm">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <RiCalendar2Line className="size-6" />
-          </div>
-          <h2 className="mt-4 font-semibold">Abre tu primer período</h2>
-          <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">
-            Cada período reúne recibos, lecturas, cargos y pagos de un mes.
-          </p>
-        </div>
+        <EmptyState
+          icon={RiCalendar2Line}
+          title="Abre tu primer período"
+          description="Cada período reúne recibos, lecturas, cargos y pagos de un mes."
+        />
       ) : (
         <DataPanel
           meta={[

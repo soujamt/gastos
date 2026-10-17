@@ -22,7 +22,7 @@ function AlertDialogBackdrop({
   return (
     <AlertDialogPrimitive.Backdrop
       className={cn(
-        "fixed inset-0 z-50 min-h-dvh bg-slate-950/45 backdrop-blur-[3px] transition-opacity duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-[-webkit-touch-callout:none]:absolute",
+        "fixed inset-0 z-50 min-h-dvh bg-black/40 backdrop-blur-[2px] transition-opacity duration-200 ease-out data-ending-style:opacity-0 data-ending-style:duration-150 data-starting-style:opacity-0 supports-[-webkit-touch-callout:none]:absolute",
         className
       )}
       {...props}
@@ -37,7 +37,7 @@ function AlertDialogPopup({
   return (
     <AlertDialogPrimitive.Popup
       className={cn(
-        "fixed top-1/2 left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border bg-card p-6 text-card-foreground shadow-[0_28px_80px_rgba(6,30,25,0.24)] transition-[transform,opacity] duration-200 outline-none data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-starting-style:scale-[0.98] data-starting-style:opacity-0 sm:w-[calc(100%-3rem)]",
+        "fixed top-1/2 left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-transparent bg-card p-6 text-card-foreground shadow-overlay transition-opacity duration-200 ease-out outline-none data-ending-style:scale-[0.98] data-ending-style:opacity-0 data-ending-style:duration-150 data-starting-style:scale-[0.98] data-starting-style:opacity-0 motion-safe:transition-[opacity,scale] sm:w-[calc(100%-3rem)]",
         className
       )}
       {...props}

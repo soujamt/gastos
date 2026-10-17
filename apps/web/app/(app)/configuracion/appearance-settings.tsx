@@ -75,7 +75,7 @@ export function AppearanceSettings() {
               type="button"
               onClick={() => updateAccent(option.id)}
               className={cn(
-                "flex items-center gap-3 rounded-xl border p-3 text-left text-sm font-medium transition-all hover:bg-muted",
+                "flex items-center gap-3 rounded-xl border p-3 text-left text-sm font-medium transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted",
                 accent === option.id &&
                   "border-primary bg-primary/5 ring-2 ring-primary/10"
               )}
@@ -111,7 +111,7 @@ export function AppearanceSettings() {
                 type="button"
                 onClick={() => setTheme(option.id)}
                 className={cn(
-                  "flex flex-col items-center gap-2 rounded-xl border p-3 text-xs font-medium transition-all hover:bg-muted",
+                  "flex flex-col items-center gap-2 rounded-xl border p-3 text-xs font-medium transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted",
                   theme === option.id &&
                     "border-primary bg-primary/5 ring-2 ring-primary/10"
                 )}

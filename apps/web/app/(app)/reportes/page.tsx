@@ -49,7 +49,7 @@ function Panel({
   children: React.ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-2xl border bg-card shadow-panel">
+    <section className="overflow-hidden rounded-2xl border border-transparent bg-card shadow-surface">
       <h2 className="flex items-center gap-2 border-b px-5 py-4 text-sm font-medium sm:px-6">
         <Icon className="size-4 text-primary" />
         {title}

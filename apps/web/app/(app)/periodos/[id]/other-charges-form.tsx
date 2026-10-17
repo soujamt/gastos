@@ -92,7 +92,7 @@ export function OtherChargesForm({
   return (
     <form
       action={formAction}
-      className="flex flex-col gap-5 rounded-2xl border bg-card p-5 shadow-sm sm:p-6"
+      className="flex flex-col gap-5 rounded-2xl border border-transparent bg-card p-5 shadow-surface sm:p-6"
     >
       {equal.length > 0 ? (
         <div className="flex flex-col gap-3 rounded-xl border border-primary/10 bg-primary/[0.04] p-4">

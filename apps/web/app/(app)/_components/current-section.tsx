@@ -1,36 +1,37 @@
 "use client"
 
 import { usePathname } from "next/navigation"
+import { RiArrowRightSLine } from "@remixicon/react"
 
 import { navGroups } from "./sidebar-nav"
 
+/** Ruta de la sección actual: grupo › módulo, en una sola línea. */
 export function CurrentSection() {
   const pathname = usePathname()
-  const item = navGroups
-    .flatMap((group) => group.items)
-    .find((candidate) =>
-      candidate.href === "/"
-        ? pathname === "/"
-        : pathname.startsWith(candidate.href)
-    )
+  const isCurrent = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href)
+  const group = navGroups.find((candidate) =>
+    candidate.items.some((item) => isCurrent(item.href))
+  )
+  const item = group?.items.find((candidate) => isCurrent(candidate.href))
 
-  if (!item) {
+  if (!group || !item) {
     return null
   }
 
-  const Icon = item.icon
-
   return (
-    <div className="hidden items-center gap-2.5 text-sm md:flex">
-      <span className="flex size-8 items-center justify-center rounded-lg border bg-card text-muted-foreground shadow-xs">
-        <Icon className="size-4" />
+    <nav
+      aria-label="Ubicación"
+      className="hidden items-center gap-1.5 text-sm md:flex"
+    >
+      <span className="text-muted-foreground">{group.label}</span>
+      <RiArrowRightSLine
+        aria-hidden="true"
+        className="size-4 text-muted-foreground/60"
+      />
+      <span aria-current="page" className="font-medium">
+        {item.label}
       </span>
-      <div>
-        <div className="text-[10px] leading-none font-semibold tracking-[0.1em] text-muted-foreground uppercase">
-          Espacio de administración
-        </div>
-        <div className="mt-1 leading-none font-medium">{item.label}</div>
-      </div>
-    </div>
+    </nav>
   )
 }

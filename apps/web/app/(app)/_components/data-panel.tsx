@@ -27,7 +27,7 @@ export function DataPanel({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border bg-card shadow-panel",
+        "overflow-hidden rounded-2xl border border-transparent bg-card shadow-surface",
         className
       )}
     >

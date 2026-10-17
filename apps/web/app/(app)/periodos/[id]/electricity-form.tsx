@@ -105,7 +105,7 @@ export function ElectricityForm({
   return (
     <form
       action={formAction}
-      className="flex flex-col gap-6 rounded-2xl border bg-card p-5 shadow-sm sm:p-6"
+      className="flex flex-col gap-6 rounded-2xl border border-transparent bg-card p-5 shadow-surface sm:p-6"
     >
       <input type="hidden" name="serviceId" value={serviceId} />
 

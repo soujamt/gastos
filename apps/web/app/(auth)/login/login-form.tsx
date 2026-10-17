@@ -14,7 +14,7 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-md">
-      <div>
+      <div className="animate-enter">
         <p className="text-[11px] font-bold tracking-[0.13em] text-primary uppercase">
           Bienvenido de nuevo
         </p>
@@ -26,7 +26,7 @@ export function LoginForm() {
         </p>
       </div>
 
-      <div className="mt-8 rounded-2xl border bg-card p-5 shadow-panel sm:p-7">
+      <div className="mt-8 animate-enter rounded-2xl border border-transparent bg-card p-5 shadow-surface [animation-delay:100ms] sm:p-7">
         <form action={formAction} className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
             <Label htmlFor="email">Correo electrónico</Label>
@@ -68,7 +68,7 @@ export function LoginForm() {
           </Button>
         </form>
       </div>
-      <p className="mt-5 text-center text-xs text-muted-foreground">
+      <p className="mt-5 animate-enter text-center text-xs text-muted-foreground [animation-delay:200ms]">
         Tu sesión está protegida y es exclusiva para usuarios autorizados.
       </p>
     </div>

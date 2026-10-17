@@ -3,7 +3,6 @@ import {
   RiArrowRightLine,
   RiBankCardLine,
   RiCalendar2Line,
-  RiCheckboxCircleLine,
   RiFlashlightLine,
   RiGroupLine,
   RiMoneyDollarCircleLine,
@@ -133,55 +132,57 @@ export default async function DashboardPage() {
       </div>
 
       <section className="grid gap-4 xl:grid-cols-[1.55fr_1fr]">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/80 p-6 text-primary-foreground shadow-hero sm:p-8">
-          <div className="absolute -top-24 -right-16 size-64 rounded-full border border-white/10" />
-          <div className="absolute -right-6 -bottom-24 size-52 rounded-full bg-white/[0.06]" />
+        <div className="relative isolate overflow-hidden rounded-2xl bg-hero p-6 text-white shadow-hero sm:p-8">
+          {/* Luz suave desde la esquina y un filo claro arriba: profundidad sin
+              adornos que compitan con la cifra. */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(120%_90%_at_100%_0%,oklch(1_0_0/0.14),transparent_60%)]"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 rounded-[inherit] shadow-[inset_0_1px_0_oklch(1_0_0/0.12)]"
+          />
           <div className="relative">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold tracking-[0.1em] text-primary-foreground/70 uppercase">
+                <p className="text-xs font-semibold tracking-[0.1em] text-white/65 uppercase">
                   {latestPeriod?.label ?? "Sin período registrado"}
                 </p>
-                <p className="mt-5 text-sm text-primary-foreground/75">
-                  Saldo pendiente
-                </p>
-                <p className="mt-1 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">
+                <p className="mt-5 text-sm text-white/70">Saldo pendiente</p>
+                <p className="mt-1 text-3xl font-semibold tracking-[-0.04em] tabular-nums sm:text-4xl">
                   {soles.format(totals.pending)}
                 </p>
               </div>
-              <div className="flex size-11 items-center justify-center rounded-2xl bg-white/12 backdrop-blur">
+              <div className="flex size-11 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 ring-inset">
                 <RiBankCardLine className="size-5" />
               </div>
             </div>
 
             <div className="mt-8 grid grid-cols-2 gap-6 border-t border-white/15 pt-5 sm:grid-cols-3">
               <div>
-                <p className="text-xs text-primary-foreground/65">
-                  Total facturado
-                </p>
-                <p className="mt-1 font-semibold">
+                <p className="text-xs text-white/60">Total facturado</p>
+                <p className="mt-1 font-semibold tabular-nums">
                   {soles.format(totals.billed)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-primary-foreground/65">
-                  Total cobrado
-                </p>
-                <p className="mt-1 font-semibold">
+                <p className="text-xs text-white/60">Total cobrado</p>
+                <p className="mt-1 font-semibold tabular-nums">
                   {soles.format(totals.paid)}
                 </p>
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <p className="text-xs text-primary-foreground/65">Avance</p>
-                <p className="mt-1 font-semibold">
+                <p className="text-xs text-white/60">Avance</p>
+                <p className="mt-1 font-semibold tabular-nums">
                   {collectionRate}% conciliado
                 </p>
               </div>
             </div>
 
-            <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-black/15">
+            <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/15">
               <div
-                className="h-full rounded-full bg-white/85 transition-all"
+                className="h-full rounded-full bg-white"
                 style={{ width: `${collectionRate}%` }}
               />
             </div>
@@ -192,10 +193,10 @@ export default async function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-bold tracking-[0.12em] text-primary uppercase">
-                  En foco
+                <CardTitle className="text-base">Próximos pasos</CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Lo que conviene revisar ahora
                 </p>
-                <CardTitle className="mt-1 text-base">Próximos pasos</CardTitle>
               </div>
               <RiPulseLine className="size-5 text-muted-foreground" />
             </div>
@@ -212,25 +213,28 @@ export default async function DashboardPage() {
                 detail: latestPeriod
                   ? "Lecturas, cargos y pagos"
                   : "Comienza el control mensual",
+                icon: RiCalendar2Line,
               },
               {
                 href: "/pagos",
                 label: "Conciliar pagos",
                 detail: `${recentPayments.length} movimientos recientes`,
+                icon: RiMoneyDollarCircleLine,
               },
               {
                 href: "/familias",
                 label: "Validar participantes",
                 detail: `${families} familias activas`,
+                icon: RiGroupLine,
               },
-            ].map((item) => (
+            ].map(({ icon: Icon, ...item }) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex items-center gap-3 rounded-xl border border-transparent p-3 transition-colors hover:bg-muted"
+                className="group flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-muted"
               >
-                <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <RiCheckboxCircleLine className="size-4" />
+                <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="size-4" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-medium">
@@ -240,7 +244,7 @@ export default async function DashboardPage() {
                     {item.detail}
                   </span>
                 </span>
-                <RiArrowRightLine className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                <RiArrowRightLine className="size-4 text-muted-foreground transition-[translate,color] duration-150 ease-out group-hover:text-foreground motion-safe:group-hover:translate-x-0.5" />
               </Link>
             ))}
           </CardContent>
@@ -336,7 +340,7 @@ export default async function DashboardPage() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex flex-col gap-3 rounded-xl border p-3.5 text-sm font-medium transition-colors hover:border-primary/20 hover:bg-primary/5"
+                  className="flex flex-col gap-3 rounded-xl border p-3.5 text-sm font-medium transition-colors duration-150 hover:border-primary/20 hover:bg-primary/5"
                 >
                   <Icon className="size-5 text-primary" />
                   {item.label}

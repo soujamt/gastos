@@ -2,6 +2,7 @@ import Link from "next/link"
 import { RiMoneyDollarCircleLine } from "@remixicon/react"
 
 import { AvatarLabel } from "@workspace/ui/components/avatar"
+import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Table,
   TableBody,
@@ -55,16 +56,11 @@ export default async function PagosPage() {
       />
 
       {payments.length === 0 ? (
-        <div className="flex flex-col items-center rounded-2xl border border-dashed bg-card p-12 text-center shadow-sm">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <RiMoneyDollarCircleLine className="size-6" />
-          </div>
-          <h2 className="mt-4 font-semibold">Aún no hay pagos</h2>
-          <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">
-            Los abonos aparecerán aquí cuando los registres dentro de un
-            período.
-          </p>
-        </div>
+        <EmptyState
+          icon={RiMoneyDollarCircleLine}
+          title="Aún no hay pagos"
+          description="Los abonos aparecerán aquí cuando los registres dentro de un período."
+        />
       ) : (
         <DataPanel
           meta={[
@@ -89,7 +85,7 @@ export default async function PagosPage() {
             <TableBody>
               {payments.map((p) => (
                 <TableRow key={p.id}>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="whitespace-nowrap text-muted-foreground tabular-nums">
                     {fullDate.format(p.paidAt)}
                   </TableCell>
                   {isAdmin ? (

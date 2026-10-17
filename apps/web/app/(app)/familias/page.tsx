@@ -1,6 +1,7 @@
 import { RiGroupLine, RiPulseLine } from "@remixicon/react"
 
 import { Badge } from "@workspace/ui/components/badge"
+import { EmptyState } from "@workspace/ui/components/empty-state"
 import { StatusDot } from "@workspace/ui/components/status-dot"
 import {
   Table,
@@ -50,16 +51,11 @@ export default async function FamiliasPage() {
       />
 
       {families.length === 0 ? (
-        <div className="flex flex-col items-center rounded-2xl border border-dashed bg-card p-12 text-center shadow-sm">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <RiGroupLine className="size-6" />
-          </div>
-          <h2 className="mt-4 font-semibold">Crea tu primera familia</h2>
-          <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">
-            Las familias son la base para repartir consumos, cargos y registrar
-            pagos.
-          </p>
-        </div>
+        <EmptyState
+          icon={RiGroupLine}
+          title="Crea tu primera familia"
+          description="Las familias son la base para repartir consumos, cargos y registrar pagos."
+        />
       ) : (
         <DataPanel
           meta={[

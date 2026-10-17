@@ -43,7 +43,7 @@ export function PaymentForm({
       className={
         modal
           ? "flex flex-col gap-5"
-          : "flex flex-col gap-4 rounded-2xl border bg-card p-5 shadow-sm"
+          : "flex flex-col gap-4 rounded-2xl border border-transparent bg-card p-5 shadow-surface"
       }
     >
       <div

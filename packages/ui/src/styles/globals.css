@@ -48,11 +48,18 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
   --font-sans: var(--font-sans);
-  /* Sombras neutras compartidas: antes cada pantalla repetía un rgba con tinte
-     verde, que reñía con la paleta neutral. */
-  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px rgb(0 0 0 / 0.04);
-  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.03), 0 16px 40px rgb(0 0 0 / 0.05);
-  --shadow-hero: 0 24px 60px rgb(0 0 0 / 0.16);
+  --color-hero: var(--hero);
+  /* Elevación: un token por nivel, neutro y con valor propio en oscuro. Las
+     superficies usan un anillo de 1px en vez de borde (con borde transparente
+     debajo, para que el modo de alto contraste siga dibujando el canto). */
+  --shadow-surface: var(--elevation-surface);
+  --shadow-surface-hover: var(--elevation-surface-hover);
+  --shadow-hero: var(--elevation-hero);
+  --shadow-overlay: var(--elevation-overlay);
+  /* Curvas más firmes que las de Tailwind: la respuesta se nota desde el
+     primer cuadro, en vez de arrancar lento. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 :root {
@@ -80,6 +87,20 @@
   --chart-4: oklch(0.61 0.14 247);
   --chart-5: oklch(0.64 0.18 28);
   --radius: 0.75rem;
+  /* Tarjeta principal del dashboard: el acento oscurecido, para que sea la
+     misma pieza sobria en claro y en oscuro y siga al acento elegido. */
+  --hero: color-mix(in oklch, var(--primary) 80%, black);
+  --elevation-surface:
+    0 0 0 1px oklch(0 0 0 / 0.06), 0 1px 2px -1px oklch(0 0 0 / 0.06),
+    0 2px 4px 0 oklch(0 0 0 / 0.04);
+  --elevation-surface-hover:
+    0 0 0 1px oklch(0 0 0 / 0.08), 0 1px 2px -1px oklch(0 0 0 / 0.08),
+    0 2px 4px 0 oklch(0 0 0 / 0.06);
+  --elevation-hero:
+    0 1px 2px oklch(0 0 0 / 0.1), 0 16px 32px -12px oklch(0 0 0 / 0.3);
+  --elevation-overlay:
+    0 0 0 1px oklch(0 0 0 / 0.06), 0 8px 16px -4px oklch(0 0 0 / 0.08),
+    0 24px 48px -12px oklch(0 0 0 / 0.2);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.93 0 0);
   --sidebar-primary: oklch(0.715 0.13 166);
@@ -122,6 +143,13 @@
   --sidebar-accent-foreground: oklch(0.99 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.705 0.13 166);
+  --hero: color-mix(in oklch, var(--primary) 50%, black);
+  /* Sobre fondo oscuro las sombras de profundidad no se ven: queda el anillo. */
+  --elevation-surface: 0 0 0 1px oklch(1 0 0 / 0.08);
+  --elevation-surface-hover: 0 0 0 1px oklch(1 0 0 / 0.13);
+  --elevation-hero: 0 0 0 1px oklch(1 0 0 / 0.08);
+  --elevation-overlay:
+    0 0 0 1px oklch(1 0 0 / 0.1), 0 24px 48px -12px oklch(0 0 0 / 0.6);
 }
 
 [data-accent="indigo"] {
@@ -174,6 +202,30 @@
   }
   ::selection {
     background: color-mix(in oklch, var(--primary) 22%, transparent);
+  }
+}
+
+/* Entrada escalonada, solo para momentos poco frecuentes (el login). El estado
+   oculto vive en el keyframe "from": si la animación no corre, el contenido se
+   ve igual. Con movimiento reducido queda solo el fundido. */
+@keyframes enter-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+}
+
+@utility animate-enter {
+  animation: enter-fade 300ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  @media (prefers-reduced-motion: no-preference) {
+    animation-name: enter-rise;
   }
 }
 
