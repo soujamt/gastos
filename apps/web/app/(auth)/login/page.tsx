@@ -3,10 +3,10 @@ import {
   RiBarChartGroupedLine,
   RiCheckboxCircleLine,
   RiLock2Line,
-  RiWallet3Line,
 } from "@remixicon/react"
 
 import { auth } from "@/auth"
+import { BrandLogo } from "@/components/brand-logo"
 
 import { LoginForm } from "./login-form"
 
@@ -22,9 +22,7 @@ export default async function LoginPage() {
         <div className="absolute -top-44 -left-28 size-[34rem] rounded-full border border-white/[0.06]" />
         <div className="absolute top-28 -left-32 size-96 rounded-full bg-white/[0.025]" />
         <div className="relative flex items-center gap-3">
-          <div className="flex size-11 items-center justify-center rounded-2xl bg-sidebar-primary text-sidebar-primary-foreground">
-            <RiWallet3Line className="size-5" />
-          </div>
+          <BrandLogo size={44} />
           <div>
             <div className="font-semibold tracking-[-0.02em]">GastosFam</div>
             <div className="text-xs text-sidebar-foreground/45">
@@ -72,9 +70,7 @@ export default async function LoginPage() {
 
       <section className="relative flex items-center justify-center px-5 py-10 sm:px-8">
         <div className="absolute top-6 left-6 flex items-center gap-2 lg:hidden">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <RiWallet3Line className="size-4" />
-          </div>
+          <BrandLogo size={36} />
           <span className="text-sm font-semibold">GastosFam</span>
         </div>
         <LoginForm />

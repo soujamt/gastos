@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { RiArrowLeftLine, RiWallet3Line } from "@remixicon/react"
+import { RiArrowLeftLine } from "@remixicon/react"
 
 import { buttonVariants } from "@workspace/ui/components/button"
 import {
@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { BrandLogo } from "@/components/brand-logo"
 import { chargeStatusLabels, paymentMethodLabels } from "@/lib/labels"
 import { prisma } from "@/lib/prisma"
 import { getViewer } from "@/lib/viewer"
@@ -83,9 +84,7 @@ export default async function EstadoDeCuentaPage({
       <article className="flex flex-col gap-7 rounded-2xl border border-transparent bg-card p-6 shadow-surface sm:p-8 print:rounded-none print:border-0 print:p-0 print:shadow-none">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b pb-5">
           <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <RiWallet3Line className="size-5" />
-            </span>
+            <BrandLogo size={40} />
             <div>
               <p className="font-semibold tracking-[-0.02em]">GastosFam</p>
               <p className="text-xs text-muted-foreground">

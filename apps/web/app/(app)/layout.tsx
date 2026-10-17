@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation"
-import { RiLogoutBoxRLine, RiWallet3Line } from "@remixicon/react"
+import { RiLogoutBoxRLine } from "@remixicon/react"
 
 import { Avatar } from "@workspace/ui/components/avatar"
 
 import { auth } from "@/auth"
+import { BrandLogo } from "@/components/brand-logo"
 import { logout } from "@/app/(auth)/actions"
 import { roleLabels } from "@/lib/labels"
 
@@ -30,9 +31,7 @@ export default async function AppLayout({
     <div className="flex min-h-svh">
       <aside className="sticky top-0 hidden h-svh w-[264px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
         <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-5">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground">
-            <RiWallet3Line className="size-[18px]" />
-          </div>
+          <BrandLogo size={36} />
           <div className="leading-tight">
             <div className="font-semibold tracking-[-0.02em] text-sidebar-foreground">
               GastosFam
@@ -76,12 +75,15 @@ export default async function AppLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border/70 bg-background/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
           <MobileNavigation isAdmin={isAdmin} />
-          <div className="leading-tight md:hidden">
-            <div className="text-sm font-semibold tracking-[-0.02em]">
-              GastosFam
-            </div>
-            <div className="text-[10px] text-muted-foreground">
-              Control familiar
+          <div className="flex items-center gap-2.5 md:hidden">
+            <BrandLogo size={30} />
+            <div className="leading-tight">
+              <div className="text-sm font-semibold tracking-[-0.02em]">
+                GastosFam
+              </div>
+              <div className="text-[10px] text-muted-foreground">
+                Control familiar
+              </div>
             </div>
           </div>
           <CurrentSection />
