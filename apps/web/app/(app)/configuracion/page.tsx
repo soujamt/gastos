@@ -18,13 +18,13 @@ export default async function ConfiguracionPage() {
     <div className="flex flex-col gap-7">
       <PageHeader
         title="Configuración"
-        description="Adapta el espacio de trabajo a la identidad y preferencias de tu organización."
+        description="Elige cómo se ve GastosFam en este dispositivo."
         eyebrow="Personalización"
       />
 
       <Card>
         <CardHeader className="flex-row items-start gap-3">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary-text">
             <RiBrush3Line className="size-5" />
           </span>
           <div>
@@ -40,12 +40,12 @@ export default async function ConfiguracionPage() {
       </Card>
 
       <div className="flex items-start gap-3 rounded-2xl border border-transparent bg-card p-5 text-sm shadow-surface">
-        <RiInformationLine className="mt-0.5 size-5 shrink-0 text-primary" />
+        <RiInformationLine className="mt-0.5 size-5 shrink-0 text-primary-text" />
         <div>
-          <p className="font-medium">Una experiencia consistente</p>
+          <p className="font-medium">Un solo color de marca</p>
           <p className="mt-1 leading-6 text-muted-foreground">
-            El color elegido se aplica a navegación, botones, indicadores y
-            modales, tanto en modo claro como oscuro.
+            El verde de GastosFam se usa en botones, indicadores y avisos, igual
+            en modo claro y oscuro.
           </p>
         </div>
       </div>

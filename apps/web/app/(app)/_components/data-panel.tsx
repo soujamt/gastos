@@ -38,7 +38,7 @@ export function DataPanel({
               key={i}
               className={cn(
                 "flex items-center gap-2",
-                muted ?? i > 0
+                (muted ?? i > 0)
                   ? "text-muted-foreground"
                   : "font-medium text-foreground"
               )}
@@ -46,7 +46,7 @@ export function DataPanel({
               <Icon
                 className={cn(
                   "size-4",
-                  (muted ?? i > 0) ? "" : "text-primary"
+                  (muted ?? i > 0) ? "" : "text-primary-text"
                 )}
               />
               {label}

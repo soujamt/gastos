@@ -176,7 +176,7 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-7 lg:gap-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <span className="text-[11px] font-bold tracking-[0.13em] text-primary uppercase">
+          <span className="text-[11px] font-bold tracking-[0.13em] text-primary-text uppercase">
             Resumen financiero
           </span>
           <h1 className="mt-1.5 text-2xl font-semibold tracking-[-0.04em] sm:text-[2rem]">
@@ -252,7 +252,7 @@ export default async function DashboardPage() {
 
             <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/15">
               <div
-                className="h-full rounded-full bg-white"
+                className="h-full rounded-full bg-primary"
                 style={{ width: `${collectionRate}%` }}
               />
             </div>
@@ -278,7 +278,7 @@ export default async function DashboardPage() {
                 href={item.href}
                 className="group flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-muted"
               >
-                <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <span className="flex size-9 items-center justify-center rounded-lg bg-primary/15 text-primary-text">
                   <Icon className="size-4" />
                 </span>
                 <span className="min-w-0 flex-1">

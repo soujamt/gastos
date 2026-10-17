@@ -188,7 +188,7 @@ export default async function PeriodoWorkspacePage({
     <div className="flex flex-col gap-7">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-bold tracking-[0.13em] text-primary uppercase">
+          <span className="text-[11px] font-bold tracking-[0.13em] text-primary-text uppercase">
             Espacio del período
           </span>
           <div className="flex items-center gap-3">
@@ -271,7 +271,7 @@ export default async function PeriodoWorkspacePage({
         <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
           No hay un servicio medido activo. Crea uno de tipo “Medido (por
           consumo)” en{" "}
-          <Link href="/servicios" className="text-primary underline">
+          <Link href="/servicios" className="text-primary-text underline">
             Servicios
           </Link>
           .
@@ -279,7 +279,7 @@ export default async function PeriodoWorkspacePage({
       ) : families.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
           No hay familias activas. Agrégalas en{" "}
-          <Link href="/familias" className="text-primary underline">
+          <Link href="/familias" className="text-primary-text underline">
             Familias
           </Link>
           .
@@ -302,7 +302,7 @@ export default async function PeriodoWorkspacePage({
           {otherServices.length === 0 ? (
             <div className="rounded-2xl border border-dashed bg-card p-8 text-center text-sm text-muted-foreground">
               No hay servicios de monto fijo. Crea uno (por ejemplo, Agua) en{" "}
-              <Link href="/servicios" className="text-primary underline">
+              <Link href="/servicios" className="text-primary-text underline">
                 Servicios
               </Link>{" "}
               para poder cobrarlo aquí.

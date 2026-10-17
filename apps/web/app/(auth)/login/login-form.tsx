@@ -15,7 +15,7 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md">
       <div className="animate-enter">
-        <p className="text-[11px] font-bold tracking-[0.13em] text-primary uppercase">
+        <p className="text-[11px] font-bold tracking-[0.13em] text-primary-text uppercase">
           Bienvenido de nuevo
         </p>
         <h2 className="mt-2 text-3xl font-semibold tracking-[-0.045em]">

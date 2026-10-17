@@ -125,7 +125,7 @@ export default async function PagosPage() {
                       {isAdmin ? (
                         <Link
                           href={`/periodos/${p.period.id}`}
-                          className="hover:text-primary hover:underline"
+                          className="hover:text-primary-text hover:underline"
                         >
                           {p.period.label}
                         </Link>

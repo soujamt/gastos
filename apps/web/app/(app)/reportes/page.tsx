@@ -51,7 +51,7 @@ function Panel({
   return (
     <section className="overflow-hidden rounded-2xl border border-transparent bg-card shadow-surface">
       <h2 className="flex items-center gap-2 border-b px-5 py-4 text-sm font-medium sm:px-6">
-        <Icon className="size-4 text-primary" />
+        <Icon className="size-4 text-primary-text" />
         {title}
       </h2>
       <div className="p-5 sm:p-6">{children}</div>
