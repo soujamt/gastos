@@ -12,6 +12,7 @@ import {
 } from "@remixicon/react"
 
 import { auth } from "@/auth"
+import { Avatar } from "@workspace/ui/components/avatar"
 import { buttonVariants } from "@workspace/ui/components/button"
 import {
   Card,
@@ -24,6 +25,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { prisma } from "@/lib/prisma"
 import { familyFilter, getViewer } from "@/lib/viewer"
 
+import { ChargeStatusDot } from "./_components/charge-status"
 import { FormDialog } from "./_components/form-dialog"
 import { createPeriod } from "./periodos/actions"
 import { PeriodForm } from "./periodos/period-form"
@@ -51,7 +53,10 @@ export default async function DashboardPage() {
         orderBy: [{ year: "desc" }, { month: "desc" }],
         include: {
           // Rol FAMILY: el resumen se limita a su propio estado de cuenta.
-          statements: { where: familyFilter(familyScope) },
+          statements: {
+            where: familyFilter(familyScope),
+            include: { family: { select: { name: true, order: true } } },
+          },
         },
       }),
       prisma.payment.findMany({
@@ -75,6 +80,13 @@ export default async function DashboardPage() {
     },
     { billed: 0, paid: 0, pending: 0 }
   ) ?? { billed: 0, paid: 0, pending: 0 }
+
+  // Quién debe qué en el período más reciente, en el orden de las familias.
+  const balances = [...(latestPeriod?.statements ?? [])].sort(
+    (a, b) =>
+      a.family.order - b.family.order ||
+      a.family.name.localeCompare(b.family.name)
+  )
 
   const collectionRate = totals.billed
     ? Math.min(100, Math.round((totals.paid / totals.billed) * 100))
@@ -352,43 +364,69 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Accesos de gestión: fuera del rol ADMIN solo quedaría Pagos, que
-            ya está en "Próximos pasos", así que la tarjeta no se muestra. */}
-        {isAdmin ? (
+        {/* Saldo por familia: el total pendiente de arriba, desglosado. Solo
+            para administración; cada familia ya ve su propio estado de cuenta
+            en "Próximos pasos". */}
+        {isAdmin && latestPeriod ? (
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Accesos rápidos</CardTitle>
-              <p className="text-xs text-muted-foreground">
-                Las tareas más frecuentes, a un clic
-              </p>
+            <CardHeader className="flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base">Saldo por familia</CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {latestPeriod.label}
+                </p>
+              </div>
+              <Link
+                href={`/periodos/${latestPeriod.id}`}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "text-muted-foreground"
+                )}
+              >
+                Ver período
+                <RiArrowRightLine />
+              </Link>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3">
-              {[
-                { href: "/periodos", label: "Períodos", icon: RiCalendar2Line },
-                { href: "/familias", label: "Familias", icon: RiGroupLine },
-                {
-                  href: "/servicios",
-                  label: "Servicios",
-                  icon: RiFlashlightLine,
-                },
-                {
-                  href: "/pagos",
-                  label: "Pagos",
-                  icon: RiMoneyDollarCircleLine,
-                },
-              ].map((item) => {
-                const Icon = item.icon
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex flex-col gap-3 rounded-xl border p-3.5 text-sm font-medium transition-colors duration-150 hover:border-primary/20 hover:bg-primary/5"
-                  >
-                    <Icon className="size-5 text-primary" />
-                    {item.label}
-                  </Link>
-                )
-              })}
+            <CardContent>
+              {balances.length ? (
+                <div className="-mx-2 flex flex-col gap-1">
+                  {balances.map((statement) => {
+                    const balance = Number(statement.balance)
+                    return (
+                      <Link
+                        key={statement.id}
+                        href={`/estado/${latestPeriod.id}/${statement.familyId}`}
+                        aria-label={`Estado de cuenta de ${statement.family.name}`}
+                        className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-muted"
+                      >
+                        <Avatar name={statement.family.name} size="sm" />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-medium">
+                            {statement.family.name}
+                          </span>
+                          <ChargeStatusDot
+                            status={statement.status}
+                            className="text-xs text-muted-foreground"
+                          />
+                        </span>
+                        <span
+                          className={cn(
+                            "text-sm font-semibold tabular-nums",
+                            balance <= 0 && "text-muted-foreground"
+                          )}
+                        >
+                          {soles.format(Math.max(0, balance))}
+                        </span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  Aún no hay cargos en {latestPeriod.label}. Regístralos en el
+                  período para ver el saldo de cada familia.
+                </div>
+              )}
             </CardContent>
           </Card>
         ) : null}
